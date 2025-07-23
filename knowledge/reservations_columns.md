@@ -1,0 +1,34 @@
+- "CONFIRMATION_NO": Confirmation number of the reservation.
+- "ARRIVAL": Arrival date (YYYY-MM-DD).
+- "PRODUCTS": Products or services included in the reservation.
+- "RESORT": Resort name. (always 'Itz'ana').
+- "ARRIVAL_TRANSPORT_TYPE": Type of transport used for arrival.
+- "FULL_NAME": Full name of the guest.
+- "ROOM_CATEGORY_LABEL": Room category, type of room.
+- "ARRIVAL_TIME": Arrival time.
+- "DEPARTURE_TIME": Departure time.
+- "MARKET_CODE": Market code for the booking.
+- "RATE_CODE": Rate code applied.
+- "DEPARTURE": Departure date (YYYY-MM-DD).
+- "VIP": VIP status indicator.
+- "GUARANTEE_CODE": Guarantee code for the reservation.
+- "BILL_TO_ADDRESS": Billing address.
+- "ORIGIN_OF_BOOKING": Origin of the booking.
+- "EFFECTIVE_RATE_AMOUNT": Effective rate amount (numeric).
+- "ADULTS": Number of adults.
+- "CHILDREN": Number of children.
+- "PERSONS": Total number of persons.
+- "DEPOSIT_PAID": Deposit paid (numeric).
+- "ARRIVAL_CARRIER_CODE": Carrier code for arrival.
+- "COMPANY_NAME": Name of the company or wholesaler.
+- "ROOM_NO": Room number assigned.
+- "SHARE_AMOUNT": Shared amount of payment with another guest (numeric).
+- "LAST_ROOM": Last room indicator.
+- "COMP_HOUSE": Complimentary house indicator. In other words, if the room was assigned for free.
+- "LIST_G_COMMENT_RESV_NAME_ID": List of comment reservation name IDs.
+- "LIST_G_FIXED_CHARGES": List of fixed charges.
+- "COUNT_COMMENTS": Number of comments.
+- "COUNT_RES_COMMENTS": Number of reservation comments.
+- "COUNT_TRACES": Number of traces.
+- "COUNT_FIXED_CHARGES": Number of fixed charges.
+- "COUNT_INVENTORY_ITEMS": Number of inventory items (numeric).
