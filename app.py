@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 import uvicorn
+from backend.main import agent_workflow
 
 
 app = FastAPI(
@@ -12,7 +13,11 @@ app = FastAPI(
 @app.post("/ask")
 async def ask_question(question: str):
     # Aquí iría la lógica para procesar la pregunta
-    return {"answer": "Esta es la respuesta a tu pregunta."}
+    try:
+        response = await agent_workflow(question)  # Await the async function
+    except Exception as e:
+        return {"error": str(e)}
+    return response  # Directly return the dictionary response
 
 
 if __name__ == "__main__":
