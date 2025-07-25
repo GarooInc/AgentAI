@@ -2,7 +2,7 @@ import asyncio
 import json
 from openai import OpenAI
 
-from cache_manager import get_cached_knowledge
+from helper import load_context
 
 from dotenv import load_dotenv
 import os
@@ -16,11 +16,9 @@ if not OPENAI_API_KEY:
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
-# Usar cache para datos de conocimiento
-knowledge_data = get_cached_knowledge()
-resv_columns = knowledge_data['reservations_columns']
-wholesalers_list = knowledge_data['wholesalers_list']
-itzana_knowledge = knowledge_data['itzana_knowledge']
+resv_columns = load_context("knowledge/reservations_columns.md")
+wholesalers_list = load_context("knowledge/wholesalers.txt")
+itzana_knowledge = load_context("knowledge/itzana_context.md")
 
 async def chat_betterQuestions(userQuery: str) -> str:
     """

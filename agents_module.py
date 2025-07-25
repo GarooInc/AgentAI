@@ -1,19 +1,18 @@
+import sqlite3
 from typing import Any, List, Dict, TypedDict
-from agents_wrapper import Agent, function_tool, AgentOutputSchema
+from agents import Agent, function_tool, AgentOutputSchema
+
+from helper import get_db, get_itzana_knowledge, get_wholesalers_list, get_reservations_columns
 from typing_extensions import TypedDict
 
-from database import db_manager
-from cache_manager import get_cached_knowledge
 
 # ----------------------------------
 #         Analysis Agent 
 # ----------------------------------
 
-# Usar cache para datos de conocimiento
-knowledge_data = get_cached_knowledge()
-reservations_columns = knowledge_data['reservations_columns']
-wholesalers_list = knowledge_data['wholesalers_list']
-itzana_knowledge = knowledge_data['itzana_knowledge']
+reservations_columns = get_reservations_columns()
+wholesalers_list = get_wholesalers_list()
+itzana_knowledge = get_itzana_knowledge()
 
 class AnalysisOutput(TypedDict):
     """
@@ -31,8 +30,28 @@ class AnalysisOutput(TypedDict):
 
 @function_tool
 def execute_query_to_sqlite(query: str) -> Any:
-    """Ejecuta la consulta SQL usando el database manager optimizado."""
-    return db_manager.execute_query(query)
+    """Ejecuta la consulta SQL en Itzana.db y retorna resultados."""
+    conn = None
+
+    print(f"\n[DEBUG] - Consulta SQL generada por el agente:\n{query}")  # <-- Agrega este print
+
+    try:
+        conn = sqlite3.connect(get_db())
+        cursor = conn.cursor()
+        cursor.execute(query)
+        if query.strip().lower().startswith("select"):
+            columns = [desc[0] for desc in cursor.description]
+            rows = cursor.fetchall()
+            result = [dict(zip(columns, row)) for row in rows]
+        else:
+            conn.commit()
+            result = [{"mensaje": f"Consulta ejecutada. Filas afectadas: {cursor.rowcount}"}]
+        return result
+    except Exception as e:
+        return [{"error": f"Error al ejecutar la consulta: {str(e)}"}]
+    finally:
+        if conn:
+            conn.close()
 
 # Instrucciones para el agente de reservaciones
 reservations_instructions = f"""
