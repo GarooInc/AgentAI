@@ -2,44 +2,62 @@ import asyncio
 import json
 
 from agents import Agent, ItemHelpers, Runner, TResponseInputItem, function_tool, trace
+from .auxiliary_functions import log
 
 
 from .module_agents import (
     evaluator_agent, 
-    evaluator_output
+    evaluator_output,
+    analyst_output, 
+    reservations_data_analyst_agent,
+    marketing_strategist_agent,
 )
 
-
-
-
-import json
-
 async def agent_workflow(user_question: str):
-    evaluator_response: evaluator_output = await Runner.run(evaluator_agent, user_question)
-    response = evaluator_response.final_output
 
-    response.appropriate_agent = response.appropriate_agent.strip()
-    if response.appropriate_agent == "Reservations Analyst":
-        pass
-    elif response.appropriate_agent == "Marketing Strategist":
-        pass
+    start_time = asyncio.get_event_loop().time()
+
+    convo: list[TResponseInputItem] = [{"role": "user", "content": user_question}]
+
+    # Paso 1: Evaluador
+    evaluator_result = await Runner.run(evaluator_agent, convo)
+    print(f"Evaluador: {evaluator_result.final_output}")
+
+    # Actualizar historial
+    convo = evaluator_result.to_input_list()
+
+    analisys_result : analyst_output
+
+    # Si necesita delegar a otro agente:
+    if evaluator_result.final_output.appropriate_agent == "Reservations Analyst":
+        analisys_result = await Runner.run(reservations_data_analyst_agent, convo)
+        # print(f"Reservations Analyst: {reservations_result.final_output}")
+
+        log(f"Reservations Analyst: \n{analisys_result.final_output.report}")
+
+        convo = analisys_result.to_input_list()
+
+
+    elif evaluator_result.final_output.appropriate_agent == "Marketing Strategist":
+        analisys_result = await Runner.run(marketing_strategist_agent, convo)
+        # print(f"Marketing Strategist: {marketing_result.final_output}")
+
+        log(f"Marketing Strategist: \n{analisys_result.final_output.report}")
+        convo = analisys_result.to_input_list()
 
     else:
-        raise ValueError(f"Agente inapropiado: {response.appropriate_agent}")
+        raise ValueError(f"Agente no reconocido: {evaluator_result.final_output.appropriate_agent}")
     
 
-    # Si eval_short_answer es un string, intenta convertirlo a JSON
-    if isinstance(response, str):
-        try:
-            # Si el string ya es un JSON válido
-            return json.loads(response)
-        except json.JSONDecodeError:
-            # Si no es un JSON válido, procesa el string para convertirlo
-            return {"final_output": response}
 
-    # Si eval_short_answer es un objeto con .dict(), lo usamos
-    if hasattr(response, "dict"):
-        return response.dict()
 
-    # Si no es ni string ni un objeto con .dict(), devuelve un error
-    return {"error": "Unexpected output format from evaluator agent"}
+
+    endTime = asyncio.get_event_loop().time()
+    elapsed_time = endTime - start_time
+
+    final_response = {
+        "reservations_result": analisys_result.final_output.dict(),  # Todo lo que tiene reservations_result
+        "execution_time": elapsed_time  # Tiempo de ejecución
+    }
+
+    return final_response
