@@ -11,53 +11,77 @@ from .module_agents import (
     analyst_output, 
     reservations_data_analyst_agent,
     marketing_strategist_agent,
+    judge_ruling,
+    judge_agent
+
 )
 
-async def agent_workflow(user_question: str):
+async def agent_workflow(user_question: str, max_retries: int = 2 ) -> dict:
 
     start_time = asyncio.get_event_loop().time()
 
-    convo: list[TResponseInputItem] = [{"role": "user", "content": user_question}]
+    convo: list[TResponseInputItem] = [{"role": "user", "content":user_question}]
+    eval_resp = await Runner.run(evaluator_agent, convo)
+    convo = eval_resp.to_input_list()
 
-    # Paso 1: Evaluador
-    evaluator_result = await Runner.run(evaluator_agent, convo)
-    print(f"Evaluador: {evaluator_result.final_output}")
+    # appropiate agent selection
+    if eval_resp.final_output.appropriate_agent == "Reservations Analyst":
+        agent = reservations_data_analyst_agent
+    elif eval_resp.final_output.appropriate_agent == "Marketing Strategist":
+        agent = marketing_strategist_agent
 
-    # Actualizar historial
-    convo = evaluator_result.to_input_list()
-
-    analisys_result : analyst_output
-
-    # Si necesita delegar a otro agente:
-    if evaluator_result.final_output.appropriate_agent == "Reservations Analyst":
-        analisys_result = await Runner.run(reservations_data_analyst_agent, convo)
-        # print(f"Reservations Analyst: {reservations_result.final_output}")
-
-        log(f"Reservations Analyst: \n{analisys_result.final_output.report}")
-
-        convo = analisys_result.to_input_list()
-
-
-    elif evaluator_result.final_output.appropriate_agent == "Marketing Strategist":
-        analisys_result = await Runner.run(marketing_strategist_agent, convo)
-        # print(f"Marketing Strategist: {marketing_result.final_output}")
-
-        log(f"Marketing Strategist: \n{analisys_result.final_output.report}")
-        convo = analisys_result.to_input_list()
-
-    else:
-        raise ValueError(f"Agente no reconocido: {evaluator_result.final_output.appropriate_agent}")
     
+    # first analysis run
+    an_resp = await Runner.run(agent, convo)
+    convo = an_resp.to_input_list()
 
+    # judge ruling and posterior runs. 
+    for _ in range(max_retries):
+        jinput = [
+            {
+                "role": "user",
+                "content": json.dumps({
+                    "original_question": eval_resp.final_output.original_question,
+                    "user_goal": eval_resp.final_output.user_goal,
+                    "data": an_resp.final_output.data,
+                    "report": an_resp.final_output.report
+                })
+            }
+        ]
 
+        jresp = await Runner.run(judge_agent, jinput)
+        ruling: judge_ruling = jresp.final_output
 
+        if ruling.veredict == 1 :
+            break # accepted. 
+        else:
+            # add feedback from judge to convo. 
+            feedback = f"{ruling.reason}. Please adjust your analysis accordingly. Previous analysis were not enough. "
+            convo.append({"role":"user", "content":feedback})
+            an_resp = await Runner.run(agent, convo)
+            convo = an_resp.to_input_list()
 
-    endTime = asyncio.get_event_loop().time()
-    elapsed_time = endTime - start_time
+    # get final time
+    end_time = asyncio.get_event_loop().time()
+
+    log(f"REPORT: \n{an_resp.final_output.report}\n")
+
 
     final_response = {
-        "reservations_result": analisys_result.final_output.dict(),  # Todo lo que tiene reservations_result
-        "execution_time": elapsed_time  # Tiempo de ejecución
+        "time_stamp": end_time - start_time,
+        "original_question": eval_resp.final_output.original_question,
+        "user_goal": eval_resp.final_output.user_goal,
+        "data": an_resp.final_output.data,
+        "report": an_resp.final_output.report
     }
 
     return final_response
+
+
+
+    
+
+    
+
+
+    

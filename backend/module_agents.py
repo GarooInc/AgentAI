@@ -260,3 +260,34 @@ marketing_strategist_agent = Agent(
     output_type=AgentOutputSchema(analyst_output, strict_json_schema=False),
     tools=[retrieve_resort_general_information, WebSearchTool()]
 )
+
+# -----------------------------------------------------------------------------------------------------------------------------------------
+#                                                     Judge Agent
+# -----------------------------------------------------------------------------------------------------------------------------------------
+
+class judge_ruling(BaseModel):
+    """
+    Output model for the Judge Agent.
+    """
+    veredict: float # 0 - not useful, 0.5 - partially useful, 1 - useful
+    reason: str
+    usefull_data: Optional[List[Dict[str, Any]]] = None  # If the data is useful, this should contain the data that is useful for the user.
+    usefull_report: str = None  # If the report is useful, this should contain the report that is useful for the user.
+    suggestions: Optional[str] = None  # If the veredict is not 1, this should contain suggestions on how the analyst could improve the next iteration.
+
+
+judge_agent = Agent(
+    name= "Judge Agent",
+    instructions=(
+        "You are a specialized judge. You will receive the original question, the user's goal, the data_table and the report from an analyst. "
+        "Your task is to evaluate the usefulness of the provided data and report. "
+        "There are three possible verdicts:\n" \
+        "- 1: The data and report directly and correctly answer the question. "
+        "- 0.5: The data and report partially answer the question, missing some information or only covering part of the requirement. "
+        "- 0: The data and report do not answer the question at all, being incorrect or irrelevant.\n\n"
+        "You should return a verdict (0, 0.5 or 1), a clear explanation of your reasoning, and if the data is useful, "
+        "you should return the data that is useful for the user. If the report is useful, you should return the report that is useful for the user.\n\n"
+        "If the verdict is not 1, you should suggest how the analyst could improve the next iteration."
+    ),
+    output_type=AgentOutputSchema(judge_ruling, strict_json_schema=False),
+)
