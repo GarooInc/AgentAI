@@ -23,7 +23,7 @@ class evaluator_output(BaseModel):
     Output model for the evaluator agent.
     """
     original_question: str
-    appropriate_agent: Literal["Reservations Analyst", "Marketing Strategist"]
+    appropriate_agent: Literal["Reservations Analyst", "Marketing Strategist", "both"]
     user_goal: str
     better_question: Optional[str] = None # a corrected version of the original question so that the agent can answer it better. Should also correct spelling (specially about wholesalers.)
     additional_info: Optional[str] = None
@@ -269,25 +269,36 @@ class judge_ruling(BaseModel):
     """
     Output model for the Judge Agent.
     """
-    veredict: float # 0 - not useful, 0.5 - partially useful, 1 - useful
+    veredict: Literal["not useful", "partially useful", "useful"]  # 0 - not useful, 1 - partially useful, 2 - useful
     reason: str
     usefull_data: Optional[List[Dict[str, Any]]] = None  # If the data is useful, this should contain the data that is useful for the user.
     usefull_report: str = None  # If the report is useful, this should contain the report that is useful for the user.
     suggestions: Optional[str] = None  # If the veredict is not 1, this should contain suggestions on how the analyst could improve the next iteration.
+    agents_to_rerun: Optional[List[Literal[
+        "Reservations Analyst",
+        "Marketing Strategist"
+    ]]] = None
 
 
 judge_agent = Agent(
-    name= "Judge Agent",
+    name="Judge Agent",
     instructions=(
-        "You are a specialized judge. You will receive the original question, the user's goal, the data_table and the report from an analyst. "
+        "You are a specialized judge. You will receive the original question, the user's goal, the data_table, and the report from an analyst. "
         "Your task is to evaluate the usefulness of the provided data and report. "
-        "There are three possible verdicts:\n" \
+        "There are three possible verdicts:\n"
         "- 1: The data and report directly and correctly answer the question. "
         "- 0.5: The data and report partially answer the question, missing some information or only covering part of the requirement. "
         "- 0: The data and report do not answer the question at all, being incorrect or irrelevant.\n\n"
-        "You should return a verdict (0, 0.5 or 1), a clear explanation of your reasoning, and if the data is useful, "
-        "you should return the data that is useful for the user. If the report is useful, you should return the report that is useful for the user.\n\n"
-        "If the verdict is not 1, you should suggest how the analyst could improve the next iteration."
+        "You should return the following fields in your output:\n"
+        "- **veredict**: A string value ('not useful', 'partially useful', or 'useful') indicating the usefulness of the data and report.\n"
+        "- **reason**: A clear explanation of your reasoning for the verdict.\n"
+        "- **usefull_data**: If the data is useful, include the data that is useful for the user.\n"
+        "- **usefull_report**: If the report is useful, include the report that is useful for the user.\n"
+        "- **suggestions**: If the verdict is not 'useful', provide suggestions on how the analyst could improve the next iteration.\n"
+        "- **agents_to_rerun**: If additional agents need to be rerun to improve the analysis, specify which agents should be rerun. "
+        "This should be a list containing one or both of the following: 'Reservations Analyst' and 'Marketing Strategist'.\n\n"
+        "Your evaluation should be thorough and ensure that the user's goal is met. If the analysis is incomplete or incorrect, "
+        "provide actionable feedback to guide the next iteration."
     ),
     output_type=AgentOutputSchema(judge_ruling, strict_json_schema=False),
 )
