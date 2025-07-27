@@ -162,12 +162,15 @@ class analyst_output(BaseModel):
 # -----------------------------------------------------------------------------------------------------------------------------------------
 
 @function_tool
-def execute_sql_query(query: str) -> List[Dict[str, Any]]:
+def execute_sql_query(query: str, max_rows: int = 300, sample_size: int = 300) -> List[Dict[str, Any]]:
     """
     Executes a SQL query on the reservations database and returns the results.
+    If the result set exceeds max_rows, applies random sampling to reduce it to sample_size rows.
 
     Args:
         query (str): The SQL query to execute.
+        max_rows (int): The maximum number of rows allowed before applying sampling.
+        sample_size (int): The number of rows to return after sampling.
 
     Returns:
         List[Dict[str, Any]]: The results of the query as a list of dictionaries.
@@ -180,7 +183,18 @@ def execute_sql_query(query: str) -> List[Dict[str, Any]]:
         cursor.execute(query)
         columns = [column[0] for column in cursor.description]  # Get column names
         results = [dict(zip(columns, row)) for row in cursor.fetchall()]  # Convert rows to dictionaries
+        
         log(f"Query executed successfully. Retrieved {len(results)} rows.")
+        
+        # Apply random sampling if the number of rows exceeds max_rows
+        if len(results) > max_rows:
+            log(f"[WARNING] - Query returned {len(results)} rows. Applying random sampling to reduce to {sample_size} rows.")
+            sampled_query = f"{query.strip()} ORDER BY RANDOM() LIMIT {sample_size}"
+            cursor.execute(sampled_query)
+            sampled_results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            log(f"Random sampling applied. Returning {len(sampled_results)} rows.")
+            return sampled_results
+        
         return results
     except Exception as e:
         log(f"Error executing query: {e}")
@@ -193,26 +207,34 @@ reservations_data_analyst_agent = Agent(
         "This agent is responsible for analyzing the reservations database to answer questions related to reservations. "
         "It receives the output from the Evaluator Agent, which includes the improved question, the user's goal, and a research plan. "
         "The agent should follow these steps to fulfill its task:\n\n"
-        "1. **Understand the database structure**: "
-
-        "2. **Review the input**: Use the improved question (`better_question`), the user's goal (`user_goal`), and the research plan (`research_plan`) provided by the Evaluator Agent to guide your analysis.\n\n"
-        "3. **Generate and execute SQL queries**: Based on the improved question and the database structure, construct an appropriate SQL query. "
-        "Use the `execute_sql_query` tool to execute the query and retrieve the data as a list of dictionaries. Ensure the query is optimized and retrieves only the necessary data.\n\n"
-        "4. **Analyze the data**: Once the data is retrieved, analyze it to extract insights and conclusions relevant to the user's question and goal. "
-        "Follow the research plan provided by the Evaluator Agent to structure your analysis.\n\n"
-        "5. **Generate a detailed report**: Create a long markdown report summarizing the findings. The report should include:\n"
+        "1. **Understand the database structure**: Use the `retrieve_reservationsdb_columns` tool to understand the available columns and their descriptions. "
+        "This will help you construct precise and optimized SQL queries.\n\n"
+        "2. **Review the input**: Use the improved question (`better_question`), the user's goal (`user_goal`), and the research plan (`research_plan`) provided by the Evaluator Agent to guide your analysis. "
+        "Focus on the specific data points and aggregations required to answer the question effectively.\n\n"
+        "3. **Generate strategic SQL queries**: Construct SQL queries that are optimized to retrieve only the necessary data. Avoid using `SELECT *`. "
+        "Instead, use aggregations (e.g., `SUM`, `AVG`, `COUNT`), groupings (`GROUP BY`), and filters (`WHERE`, `HAVING`) to process and reduce the data directly in the query. "
+        "If you use `LIMIT`, ensure that it is justified by the context of the question and does not compromise the completeness of the analysis. "
+        "For example, when generating buyer personas, ensure that the query retrieves enough data to identify meaningful patterns and trends across all relevant categories. "
+        "Do not use `LIMIT` to arbitrarily restrict the data if the question requires analyzing a large dataset to draw conclusions.\n\n"
+        "4. **Execute the SQL query**: Use the `execute_sql_query` tool to execute the query and retrieve the data as a list of dictionaries. "
+        "Ensure the query is optimized and retrieves only the necessary data.\n\n"
+        "5. **Analyze the data**: Once the data is retrieved, analyze it to extract insights and conclusions relevant to the user's question and goal. "
+        "Follow the research plan provided by the Evaluator Agent to structure your analysis. Ensure that the analysis is comprehensive and considers all relevant data points.\n\n"
+        "6. **Generate a detailed report**: Create a long markdown report summarizing the findings. The report should include:\n"
         "- Key insights and conclusions derived from the data.\n"
         "- Any trends, patterns, or anomalies observed.\n"
         "- Recommendations based on the analysis.\n"
         "If the user explicitly requests a graph or visualization, include it in the report if possible.\n\n"
-        "6. **Output the results**: Provide the following fields in the output:\n"
+        "7. **Output the results**: Provide the following fields in the output:\n"
         "- **original_question**: The user's original question.\n"
         "- **user_goal**: The user's intended goal or purpose.\n"
         "- **responding_agent**: Always 'Reservations Analyst'.\n"
         "- **better_question**: The improved version of the original question provided by the Evaluator Agent.\n"
         "- **data**: The data retrieved from the reservations database as a list of dictionaries. This should be the direct output of the `execute_sql_query` tool.\n"
-        "- **report**: A long markdown report with the analysis of the data, including the data as a table, insights, conclusions, and recommendations. Link the information from `retrieve_resort_general_information` tool with the data gathered. It should not include technical terms from the database. \n\n"
-        "The agent should ensure that all steps are completed thoroughly and that the output aligns with the user's goal and research plan."
+        "- **report**: A long markdown report with the analysis of the data, including the data as a table, insights, conclusions, and recommendations. Link the information from `retrieve_resort_general_information` tool with the data gathered. It should not include technical terms from the database.\n\n"
+        "The agent should ensure that all steps are completed thoroughly and that the output aligns with the user's goal and research plan. "
+        "Always prioritize generating SQL queries that process and reduce the data directly in the database, rather than retrieving raw data for post-processing. "
+        "Avoid using arbitrary `LIMIT` clauses unless explicitly justified by the context of the question. If the question requires analyzing a large dataset to draw conclusions, ensure that the query retrieves enough data to support meaningful insights."
     ),
     tools=[execute_sql_query, retrieve_resort_general_information, WebSearchTool()],
     output_type=AgentOutputSchema(analyst_output, strict_json_schema=False),
