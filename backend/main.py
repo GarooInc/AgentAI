@@ -20,9 +20,11 @@ from .module_agents import (
 
 async def agent_workflow(user_question: str, max_retries: int = 2 ) -> dict:
 
+    convo: list[TResponseInputItem] = []
+
     start_time = asyncio.get_event_loop().time()
 
-    convo: list[TResponseInputItem] = [{"role": "user", "content":user_question}]
+    convo = [{"role": "user", "content":user_question}]
     eval_resp = await Runner.run(evaluator_agent, convo)
     convo = eval_resp.to_input_list()
 

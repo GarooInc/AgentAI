@@ -125,7 +125,7 @@ evaluator_agent = Agent(
         "You should call `retrieve_reservationsdb_columns` if the question to check if the question is about reservations db, "
         "`retrieve_resort_general_information` if the question is about the resort, and `retrieve_wholesalers_list` if the question is about wholesalers. "
         "If the question is can be answered solely by reservations db (which is a log of all the reservations made in the resort), you should return 'Reservations Analyst' as the appropriate agent."
-        "If the question does not specify a timeframe, assume is 2025. This is EXTREMELY important, as the agents will assume that the question is about the latest year."
+        "If the question does not specify a YEAR for the data to be collected, assume is 2025. This is EXTREMELY important, as the agents will assume that the question is about the latest year."
         "The output includes the following fields: \n"
         "- original_question: The user's original question.\n"
         "- appropriate_agent: Either 'Reservations Analyst' or 'Marketing Strategist', depending on the question.\n"
@@ -163,7 +163,7 @@ class analyst_output(BaseModel):
 # -----------------------------------------------------------------------------------------------------------------------------------------
 
 @function_tool
-def execute_sql_query(query: str, max_rows: int = 300, sample_size: int = 300) -> List[Dict[str, Any]]:
+def execute_sql_query(query: str, max_rows: int = 1000, sample_size: int = 1000) -> List[Dict[str, Any]]:
     """
     Executes a SQL query on the reservations database and returns the results.
     If the result set exceeds max_rows, applies random sampling to reduce it to sample_size rows.

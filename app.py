@@ -1,6 +1,8 @@
-from fastapi import FastAPI
+from typing import List
+from fastapi import Body, FastAPI
 import uvicorn
 from backend.main import agent_workflow
+from pydantic import BaseModel
 
 
 app = FastAPI(\
@@ -10,10 +12,19 @@ app = FastAPI(\
 )
 
 
+class HistoryItem(BaseModel):
+    content: str
+    role: str
+
+class InputData(BaseModel):
+    question: str
+    history: List[HistoryItem] = []
+
 @app.post("/ask")
-async def ask_question(question: str):
-    # Aquí iría la lógica para procesar la pregunta
+async def ask_question(input_data: InputData = Body(...)):
     try:
+        question = input_data.question
+        history = input_data.history
         response = await agent_workflow(question)  # Await the async function
     except Exception as e:
         return {"error": str(e)}
