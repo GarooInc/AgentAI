@@ -70,7 +70,7 @@ def close_db_connection():
 
 
 
-def upload_to_file_server(file_path: str = None, buf: io.BytesIO = None) -> str:
+def upload_to_file_server(file_path: str = None, buf: io.BytesIO = None) -> str: # FOR GRAPH AGENT
     """
     Sube un archivo (desde ruta local o buffer) al servidor y devuelve la URL pública.
     """

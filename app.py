@@ -3,7 +3,7 @@ import uvicorn
 from backend.main import agent_workflow
 
 
-app = FastAPI(
+app = FastAPI(\
     title="Itzana Agents API",
     description="API para ejecutar los agentes de análisis (currently 1)",
     version="1.0.0",
