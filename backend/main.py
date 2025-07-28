@@ -1,5 +1,6 @@
 import asyncio
 import json
+from typing import Optional
 
 from agents import Agent, ItemHelpers, Runner, TResponseInputItem, function_tool, trace
 from .auxiliary_functions import log
@@ -23,6 +24,14 @@ async def agent_workflow(user_question: str, max_retries: int = 2 ) -> dict:
     convo: list[TResponseInputItem] = [{"role": "user", "content":user_question}]
     eval_resp = await Runner.run(evaluator_agent, convo)
     convo = eval_resp.to_input_list()
+
+
+    log(f"Agente seleccionado: {eval_resp.final_output.appropriate_agent} \n")
+    log(f"Pregunta original: {eval_resp.final_output.original_question} \n")
+    log(f"Meta del usuario: {eval_resp.final_output.user_goal} \n")
+    log(f"Pregunta mejorada: {eval_resp.final_output.better_question} \n")
+    log(f"Información adicional: {eval_resp.final_output.additional_info} \n")
+    log(f"Plan de investigación: {eval_resp.final_output.research_plan} \n")
 
     # appropiate agent selection
     if eval_resp.final_output.appropriate_agent == "Reservations Analyst":
