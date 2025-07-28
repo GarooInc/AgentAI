@@ -17,27 +17,34 @@ from .module_agents import (
 
 )
 
-async def agent_workflow(user_question: str, max_retries: int = 2 ) -> dict:
+async def agent_workflow(user_question: str, max_retries: int = 2, prev_messages: list[TResponseInputItem] = []) -> dict:
 
     start_time = asyncio.get_event_loop().time()
 
     convo: list[TResponseInputItem] = [{"role": "user", "content":user_question}]
+
+    if prev_messages:
+        convo = prev_messages + convo
+
     eval_resp = await Runner.run(evaluator_agent, convo)
     convo = eval_resp.to_input_list()
 
-
-    log(f"Agente seleccionado: {eval_resp.final_output.appropriate_agent} \n")
-    log(f"Pregunta original: {eval_resp.final_output.original_question} \n")
-    log(f"Meta del usuario: {eval_resp.final_output.user_goal} \n")
-    log(f"Pregunta mejorada: {eval_resp.final_output.better_question} \n")
-    log(f"Información adicional: {eval_resp.final_output.additional_info} \n")
-    log(f"Plan de investigación: {eval_resp.final_output.research_plan} \n")
 
     # appropiate agent selection
     if eval_resp.final_output.appropriate_agent == "Reservations Analyst":
         agent = reservations_data_analyst_agent
     elif eval_resp.final_output.appropriate_agent == "Marketing Strategist":
         agent = marketing_strategist_agent
+    elif eval_resp.final_output.appropriate_agent == "Evaluator Agent":
+        end_time = asyncio.get_event_loop().time()
+        final_response = {
+            "time_stamp": end_time - start_time,
+            "original_question": eval_resp.final_output.original_question,
+            "user_goal": eval_resp.final_output.user_goal,
+            "data": an_resp.final_output.data,
+            "report": an_resp.final_output.report
+        }
+        return final_response
 
     
     # first analysis run

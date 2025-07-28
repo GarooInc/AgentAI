@@ -23,7 +23,7 @@ class evaluator_output(BaseModel):
     Output model for the evaluator agent.
     """
     original_question: str
-    appropriate_agent: Literal["Reservations Analyst", "Marketing Strategist"]
+    appropriate_agent: Literal["Reservations Analyst", "Marketing Strategist", "Evaluator Agent"]
     user_goal: str
     better_question: Optional[str] = None # a corrected version of the original question so that the agent can answer it better. Should also correct spelling (specially about wholesalers.)
     additional_info: Optional[str] = None
@@ -136,6 +136,7 @@ evaluator_agent = Agent(
         "- expected_report_outline: The expected structure of the report to be generated.\n"
         "- needs_graph: A boolean indicating whether a graph is required in the response given the question. Only if the user specifically requests a graph."
         "IF you mention anything from the db columns, you should always assing it to the `Reservations Analyst`"
+        "Lastly, if the question is something like hello, or what is your name, you should return 'Evaluator Agent' as the appropriate agent. Answer the user's query directly. "
     ),
     tools=[
         retrieve_wholesalers_list,
