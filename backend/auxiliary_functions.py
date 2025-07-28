@@ -11,6 +11,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import sqlite3
 
+
+## GLOBALES
+_db_connection = None
+
+
+
 def load_json(filename: str) -> dict:
     """
     Carga un archivo JSON y devuelve su contenido como un diccionario.
@@ -20,8 +26,8 @@ def load_json(filename: str) -> dict:
     
 def get_db() -> str:
     try:
-        # Obtiene la ruta absoluta del archivo de configuración
-        config_path = os.path.abspath('config/db_conn.json')
+        # Corrige la ruta al archivo de configuración
+        config_path = os.path.abspath('backend/config/db_conn.json')
         
         # Carga el archivo JSON
         db_conn_json = load_json(config_path)
@@ -35,40 +41,36 @@ def get_db() -> str:
         # Manejo de errores en caso de que el archivo no exista o sea inválido
         raise RuntimeError(f"Error al cargar la configuración de la base de datos: {e}")
     
-def get_itzana_knowledge() -> str:
-    """
-    Carga el conocimiento de Itzana desde el archivo de contexto.
-    """
-    try:
-        return load_context("knowledge/itzana_context.md")
-    except FileNotFoundError:
-        return "No se pudo cargar el conocimiento de Itzana. Asegúrate de que el archivo exista."
-    
-def get_wholesalers_list() -> str:
-    """
-    Carga la lista de mayoristas desde el archivo de texto.
-    """
-    try:
-        return load_context("knowledge/wholesalers.txt")
-    except FileNotFoundError:
-        return "No se pudo cargar la lista de mayoristas. Asegúrate de que el archivo exista."
-    
-def get_reservations_columns() -> str:
-    """
-    Carga las columnas de la tabla de reservas desde el archivo de contexto.
-    """
-    try:
-        return load_context("knowledge/reservations_columns.md")
-    except FileNotFoundError:
-        return "No se pudo cargar las columnas de reservas. Asegúrate de que el archivo exista."
+# Variable global para la conexión a la base de datos
+_db_connection = None
 
-# para cargar archivos de knowledge
-def load_context(filename):
-    with open(filename, "r", encoding="utf-8") as f:
-        return f.read()
+def get_db_connection() -> sqlite3.Connection:
+    """
+    Devuelve una conexión global a la base de datos. Si no existe, la crea.
+    """
+    global _db_connection
+
+    if _db_connection is None:
+        db_path = get_db()  # Obtiene la ruta de la base de datos
+        _db_connection = sqlite3.connect(db_path)
+        log(f"Conexión a la base de datos establecida: {db_path}")
+
+    return _db_connection
+
+def close_db_connection():
+    """
+    Cierra la conexión global a la base de datos si está abierta.
+    """
+    global _db_connection
+
+    if _db_connection is not None:
+        _db_connection.close()
+        log("Conexión a la base de datos cerrada.")
+        _db_connection = None
 
 
-def upload_to_file_server(file_path: str = None, buf: io.BytesIO = None) -> str:
+
+def upload_to_file_server(file_path: str = None, buf: io.BytesIO = None) -> str: # FOR GRAPH AGENT
     """
     Sube un archivo (desde ruta local o buffer) al servidor y devuelve la URL pública.
     """
@@ -138,5 +140,11 @@ def execute_graph_agent_code(code: str, table_data: list, output_file:str = "out
     # print(f"[DEBUG] - Imagen subida correctamente: {public_url}")
     return public_url
 
-### 
-### MOD 
+def log(message: str):
+    """
+    Prints debug information to the console with a timestamp.
+    """
+    from datetime import datetime
+
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"[DEBUG] [{timestamp}] - {message}")
