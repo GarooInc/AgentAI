@@ -45,8 +45,10 @@ async def agent_workflow(user_question: str, max_retries: int = 2 ) -> dict:
 
     
     # first analysis run
+    log(f"[{asyncio.get_event_loop().time()}] Running analysis with {agent.name} agent...")
     an_resp = await Runner.run(agent, convo)
     convo = an_resp.to_input_list()
+    log(f"[{asyncio.get_event_loop().time()}] Análisis completado con {agent.name} agent.")
 
     # judge ruling and posterior runs. 
     for _ in range(max_retries):
