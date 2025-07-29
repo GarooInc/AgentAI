@@ -57,8 +57,6 @@ def retrieve_reservationsdb_columns() -> Dict[str, str]:
     except Exception as e:
         raise RuntimeError(f"An error occurred while reading the file: {e}")
 
-    log(f"Retrieved {len(columns_info)} columns from reservations_columns.md")
-
     return columns_info
 
 @function_tool
@@ -83,9 +81,8 @@ def retrieve_resort_general_information() -> str:
     except Exception as e:
         raise RuntimeError(f"An error occurred while reading the file: {e}")
 
-    log("Retrieved resort general information successfully")
-
     return context_info
+
 
 @function_tool
 def retrieve_wholesalers_list() -> List[str]:
@@ -109,15 +106,20 @@ def retrieve_wholesalers_list() -> List[str]:
     except Exception as e:
         raise RuntimeError(f"An error occurred while reading the file: {e}")
     
-    log(f"Retrieved {len(wholesalers)} wholesalers from wholesalers.txt")
-
     return wholesalers
 
 
 orchestrator_agent = Agent(
     name="Orchestrator Agent",
     instructions = """
-You are the Orchestrator Agent for Itz'ana Resort’s analytics suite. Your job is to read the last user message in `convo`, decide whether you can answer directly or must route to one or both specialist agents, and detect if the user explicitly requests a graph. You output exactly one JSON object matching the schema below.
+You are the Orchestrator Agent for Itz'ana Resort’s analytics suite. Your job is to read the last user message in `convo`, 
+decide whether you can answer directly or must route to one or both specialist agents, 
+and detect if the user explicitly requests a graph. 
+You output exactly one JSON object matching the schema below.
+
+You can use `retrieve_reservationsdb_columns` to get the information about the columns of the reservations table. Those are all the columns.
+
+If you already try multiple times to answer the question, you can return a clarifying question to the user, so that you can continue the workflow.
 
 0) EARLY CLARIFICATION  
    If the user’s last message is missing any key parameter (e.g. what “total” refers to—reservations, revenue, nights—or over which date range), immediately return with:
@@ -182,7 +184,6 @@ Return only this JSON object (no markdown):
     tools=[
         retrieve_wholesalers_list,
         retrieve_resort_general_information,
-        retrieve_reservationsdb_columns
     ], 
     output_type=orchestator_agent_output,
     model="gpt-4o-mini",
@@ -193,7 +194,7 @@ class analyst_output(BaseModel):
     """
     Output model for the Analyst-type agents.
     """
-    data: List[Dict[str, Any]] = None # a list of multiple table as json responses. 
+    data: List[Dict[str, Any]] # a table as JSON. 
     findings: str # a list of findings made by analysts agents. 
     clarifying_question: Optional[str]
 
@@ -202,6 +203,30 @@ class analyst_output(BaseModel):
 # -----------------------------------------------------------------------------------------------------------------------------------------
 #                                                     Reservations Data Analyst Agent
 # -----------------------------------------------------------------------------------------------------------------------------------------
+
+@function_tool
+def retrieve_query_examples() -> List[str]:
+    """
+    Retrieves query examples from the query_examples.md file.
+
+    Returns:
+        A list of query examples.
+    """
+
+    log("Retrieving query examples from query_examples.md")
+
+    # Define the path to the query_examples.md file
+    file_path = os.path.join(os.path.dirname(__file__), 'knowledge', 'query_examples.md')
+
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            examples = [line.strip() for line in file if line.strip()]
+    except FileNotFoundError:
+        raise FileNotFoundError(f"The file {file_path} does not exist.")
+    except Exception as e:
+        raise RuntimeError(f"An error occurred while reading the file: {e}")
+
+    return examples
 
 @function_tool
 def execute_sql_query(query: str, max_rows: int = 1000, sample_size: int = 1000) -> List[Dict[str, Any]]:
@@ -248,6 +273,11 @@ data_analyst = Agent(
 
     instructions = """
         You are a specialized data‑analyst for Itz'ana Resort. Answer the user’s question by querying the SQLite database’s `reservations` table via the `execute_sql_query` tool. Never produce charts or code—only query and interpret.
+        You can use `retrieve_reservationsdb_columns` to get the information about the columns of the reservations table. Those are all the columns.
+        Or you can call `pragma table_info('reservations')` to introspect the schema. They should overall give you the same thing. 
+
+        For complex questions, you can check `retrieve_query_examples` for examples of how to query the database. This should help you understand how to structure your queries.
+        Be sure to always call this tool before running any query, so you can understand the columns available in the database.
 
         WORKFLOW
         1) Understand the question. If essential details (date range, segment, metric definition) are missing and block execution, return ONE concise clarifying question.
@@ -281,7 +311,7 @@ data_analyst = Agent(
 
         OUTPUT — return ONLY this JSON object (no markdown):
         {
-        "data": [ <table_json_1>, <table_json_2>, ... ],  // a list of JSON tables; usually provide ONE table. Include >1 only if essential (keep each aggregated/compact).
+          "data": [ {col1: val1, col2: val2, …}, … ],        # ¡UNA sola tabla! lista de filas
         "findings": "Plain‑text interpretation that answers the question, including key insights/patterns/anomalies and any assumptions or data limitations.",
         "clarifying_question": "<Only if blocking details are missing; else ''>"
         }
@@ -291,9 +321,9 @@ data_analyst = Agent(
         - Return multiple small tables only when necessary to answer the question (e.g., a totals table plus a breakdown).
     """
     ,
-    tools=[execute_sql_query, retrieve_resort_general_information, WebSearchTool()],
+    tools=[execute_sql_query, retrieve_reservationsdb_columns, retrieve_query_examples],
     output_type=AgentOutputSchema(analyst_output, strict_json_schema=False),
-    model="gpt-4o-mini",
+    model="gpt-4o",
 )
 
 # -----------------------------------------------------------------------------------------------------------------------------------------
@@ -325,7 +355,7 @@ marketing_analyst = Agent(
 
         OUTPUT — return ONLY this JSON object (no markdown):
         {
-        "data": null,  // marketing_analyst does not return tables; always set to null
+        "data": [],  // marketing_analyst does not return tables; always set to null
         "findings": "A cohesive strategy narrative in plain text. Internally label sections like: Insights:, Actions:, Assumptions:, Sources:. If WebSearchTool() was used, include the link under Sources:.",
         "clarifying_question": "<Only if blocking details are missing; else ''>"
         }

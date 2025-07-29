@@ -13,62 +13,56 @@ from .module_agents import (
 )
 
 async def agent_workflow(user_question: str, convo: list[TResponseInputItem] = [],  max_retries: int = 2 ) -> dict:
-
-
     start_time = asyncio.get_event_loop().time()
+    final_response = {"overall_time": 0, "clarifying_question": "", "data": {}, "markdown": ""}
+    # if not convo: convo = []
 
-    final_response = {}
-
-    log("Starting agent workflow...")
-
-    print("ESPECIAL: ")# ammount of items in convo
-    print(len(convo))
-    
-    # add user question to conversation
+    log(f"Starting agent workflow... Conversation length: {len(convo)}")
     convo.append({"role": "user", "content": user_question})
 
     try:
         log("Running Orchestrator ...")
         orchestrator_response = await Runner.run(orchestrator_agent, convo)
         log("Orchestrator response received.")
+        print(f"\tAGENTES: {orchestrator_response.final_output.assigned_agents}\n\tUSER GOAL: {orchestrator_response.final_output.user_goal}\n\tREQUIRES GRAPH: {orchestrator_response.final_output.requires_graph}\n\tCLARIFYING QUESTION: {orchestrator_response.final_output.clarifying_question}")
 
-        print("\n\nOrchestrator response: ")
-        log(f"Orchestrator assigned agent: {orchestrator_response.final_output.assigned_agents}")
-        log(f"Orchestrator user_question: {orchestrator_response.final_output.user_question}")
-        log(f"Orchestrator user_goal: {orchestrator_response.final_output.user_goal}")
-        log(f"Orchestrator commentary: {orchestrator_response.final_output.commentary}")
-        log(f"Orchestrator requires_graph: {orchestrator_response.final_output.requires_graph}")
-        log(f"Orchestrator clarifying_question: {orchestrator_response.final_output.clarifying_question}")
-
-        if orchestrator_response.final_output.clarifying_question:
+        # Orchestrator response handling
+        if orchestrator_response.final_output.clarifying_question: 
             log("Orchestrator requires clarification.")
             final_response["clarifying_question"] = orchestrator_response.final_output.clarifying_question
+            final_response["overall_time"] = asyncio.get_event_loop().time() - start_time
+            return final_response
+        
+        else: # No hay clarifying question, proceed with assigned agents
+            
+            # define order of agents to run
+            agent_list = orchestrator_response.final_output.assigned_agents
+            while agent_list:
+                agent_name = agent_list.pop(0)
+                log(f"Running agent:")
+                
+                if agent_name == "data_analyst":
+                    response = await Runner.run(data_analyst, convo, max_turns=10)
+                elif agent_name == "marketing_analyst":
+                    #response = await Runner.run(marketing_analyst, convo, max_turns=10)
+                    continue
+                else:
+                    continue
+                
+                # Process the response
+                if response.final_output:
+                    final_response["data"] = response.final_output.data
+                    final_response["markdown"] += response.final_output.findings + "\n"
+                    print(f"\n\nAgent {agent_name} response processed.")
+                    print(final_response["markdown"])
+                else:
+                    log(f"No final output from agent {agent_name}")
 
 
     except Exception as e:
         log(f"Error in orchestrator: {e}")
         return {"error": str(e)}
 
-
-
-    end_time = asyncio.get_event_loop().time()
-    overall_time = end_time - start_time
-
-    final_response["overall_time"] = overall_time
+    final_response["overall_time"] = asyncio.get_event_loop().time() - start_time
 
     return final_response
-
-    
-
-
-
-
-
-
-
-    
-
-    
-
-
-    
