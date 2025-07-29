@@ -11,7 +11,6 @@ app = FastAPI(\
     version="1.0.0",
 )
 
-
 class HistoryItem(BaseModel):
     content: str
     role: str
