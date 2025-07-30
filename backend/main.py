@@ -1,8 +1,11 @@
 import asyncio
 import json
 from typing import Optional
+import traceback
+
 
 from agents import Agent, ItemHelpers, Runner, TResponseInputItem, function_tool, trace
+from openai import BaseModel
 from .auxiliary_functions import log, execute_graph_agent_code
 
 
@@ -10,73 +13,92 @@ from .module_agents import (
     orchestrator_agent,
     data_analyst,
     marketing_analyst,
+    response_agent
 )
 
 async def agent_workflow(user_question: str, convo: list[TResponseInputItem] = [],  max_retries: int = 2 ) -> dict:
-    start_time = asyncio.get_event_loop().time()
-    final_response = {"overall_time": 0, "clarifying_question": "", "data": {}, "markdown": ""}
-    if not convo: convo = []
-
-    log(f"Starting agent workflow... Conversation length: {len(convo)}")
+    final_response = {"overall_time": 0, "data": {}, "markdown": ""}
+    stime = asyncio.get_event_loop().time()
+    convo = convo or []
     convo.append({"role": "user", "content": user_question})
 
     try:
-        log("Running Orchestrator ...")
-        orchestrator_response = await Runner.run(orchestrator_agent, convo)
-        log("Orchestrator response received.")
-        print(f"\tAGENTES: {orchestrator_response.final_output.assigned_agents}\n\tUSER GOAL: {orchestrator_response.final_output.user_goal}\n\tREQUIRES GRAPH: {orchestrator_response.final_output.requires_graph}\n\tCLARIFYING QUESTION: {orchestrator_response.final_output.clarifying_question}")
+        log("Starting agent's workflow.")
 
-        # Orchestrator response handling
-        if orchestrator_response.final_output.clarifying_question: 
+        # 1) run orchestrator agent. 
+        log("Running Orchestrator ...")
+        o_resp = await Runner.run(orchestrator_agent, convo)
+        o_out = o_resp.final_output
+        log(f"Orchestrator response: {o_out.assigned_agents}, {o_out.requires_graph}, {o_out.clarifying_question}")
+
+        convo.append({
+            "role": "assistant",
+            "content": (
+                f"Orchestrator response: ["
+                f"Assigned Agents: {o_out.assigned_agents}, "
+                f"User Question: {o_out.user_question}, "
+                f"User Goal: {o_out.user_goal}, "
+                f"Commentary: {o_out.commentary}, "
+                f"Requires Graph: {o_out.requires_graph}, "
+                f"Clarifying Question: {o_out.clarifying_question}]"
+            )
+        })
+
+
+        # 2) run analyst agents. 
+        if not o_out.clarifying_question and not o_out.clarifying_question == "": # orc no devuelve pregunta, continua el ciclo. 
+
+            log("Orchestrator does not require clarification, proceeding with assigned agents.")
+            for analyst in o_out.assigned_agents:
+                log(f"Running agent: {analyst}")
+                if analyst == "data_analyst":
+                    response = await Runner.run(data_analyst, convo, max_turns=5)
+                    final_response["data"] = response.final_output.data # revisar. 
+                elif analyst == "marketing_analyst":
+                    response = await Runner.run(marketing_analyst, convo, max_turns=2)
+                else:
+                    raise ValueError(f"Unknown agent: {analyst}")
+                
+                log(f"Agent {analyst} finished. ")
+
+                rout = response.final_output
+                convo.append({
+                    "role": "assistant",
+                    "content": (
+                        f"Data Analyst response: ["
+                        f"Data: {rout.data}, "
+                        f"Findings: {rout.findings}, "
+                        f"Clarifying Question: {rout.clarifying_question}]" # esto no me convence, hay que revisarlo. 
+                    )
+                })
+                
+
+        # 3) run graph agent if required.
+            if o_out.requires_graph:
+                pass
+
+        # 4) run response agent.
+            log("Running Response Agent...")
+            response = await Runner.run(response_agent, convo)
+            out = response.final_output.markdown
+
+        # 5) prepare final response.
+            final_response["overall_time"] = asyncio.get_event_loop().time() - stime 
+            final_response["markdown"] = out
+            log(f"Response Agent finished.")
+            print(f"\n Respuesta de la suite de agentes:\n {out}\n")
+
+        else: # orc si devuelve pregunta, devuelve la esa pregunta y termina el ciclo.
             log("Orchestrator requires clarification.")
-            final_response["clarifying_question"] = orchestrator_response.final_output.clarifying_question
-            final_response["overall_time"] = asyncio.get_event_loop().time() - start_time
+            final_response["markdown"] = o_out.clarifying_question
+            final_response["overall_time"] = asyncio.get_event_loop().time() - stime
             return final_response
         
-        else: # No hay clarifying question, proceed with assigned agents
-
-            ## add orchestrator response to conversation
-            #convo += orchestrator_response.to_input_list() remove the first element of the response, which is the user question.
-            convo += orchestrator_response.to_input_list()[1:]            
-
-            analysts_responses = []
-
-            # define order of agents to run
-            agent_list = orchestrator_response.final_output.assigned_agents
-            while agent_list:
-                agent_name = agent_list.pop(0)
-                log(f"Running agent:")
-                
-                if agent_name == "data_analyst":
-                    response = await Runner.run(data_analyst, convo, max_turns=5)
-                    convo.append({"role": "assistant", "content": f"data: {response.final_output.data} findings: {response.final_output.findings} clarifying_question: {response.final_output.clarifying_question}"})
-                elif agent_name == "marketing_analyst":
-                    response = await Runner.run(marketing_analyst, convo, max_turns=3)
-                    convo.append({"role": "assistant", "content": f"data: {response.final_output.data} findings: {response.final_output.findings} clarifying_question: {response.final_output.clarifying_question}"})
-                else:
-                    continue
-
-                log(f"Agent {agent_name} response: {response.final_output}")
-
-                # Guardar la respuesta en analysts_responses
-                analysts_responses.append({
-                    "agent_name": agent_name,
-                    "data": response.final_output.data if response.final_output and response.final_output.data is not None else {},
-                    "findings": response.final_output.findings if response.final_output and response.final_output.findings is not None else [],
-                    "clarifying_question": response.final_output.clarifying_question if response.final_output and response.final_output.clarifying_question is not None else ""
-                })
-
-            # aqui ya estan todas las respuestas de los analistas
-            
-
-
-            print_convo(convo)
-
     except Exception as e:
-        log(f"Error in orchestrator: {e}")
-        return {"error": str(e)}
-
-    final_response["overall_time"] = asyncio.get_event_loop().time() - start_time
+        import traceback
+        error_details = traceback.format_exc()
+        log(f"Error in orchestrator: {e}\nTraceback:\n{error_details}")
+        return {"error": str(e), "details": error_details}
 
     return final_response
 
