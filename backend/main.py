@@ -17,6 +17,11 @@ from .module_agents import (
 )
 
 async def agent_workflow(user_question: str, convo: list[TResponseInputItem] = [],  max_retries: int = 2 ) -> dict:
+
+    log("Convo: ")
+    for message in convo:
+        print(f"  {message['role']}: {message['content']}")
+
     final_response = {"overall_time": 0, "data": {}, "markdown": ""}
     stime = asyncio.get_event_loop().time()
     convo = convo or []

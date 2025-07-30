@@ -1,33 +1,22 @@
-from typing import List
 from fastapi import Body, FastAPI
 import uvicorn
 from backend.main import agent_workflow
-from pydantic import BaseModel
 
-
-app = FastAPI(\
+app = FastAPI(
     title="Itzana Agents API",
-    description="API para ejecutar los agentes de análisis (currently 1)",
-    version="1.0.0",
+    description="Itzana Agents API for handling user questions",
+    version="3.0.0",
 )
 
-class HistoryItem(BaseModel):
-    content: str
-    role: str
-
-class InputData(BaseModel):
-    question: str
-    history: List[HistoryItem] = []
-
 @app.post("/ask")
-async def ask_question(input_data: InputData = Body(...)):
+async def ask_question(input_data: dict = Body(...)):
     try:
-        question = input_data.question
-        history = input_data.history
-        response = await agent_workflow(question)  # Await the async function
+        question = input_data.get("question", "")
+        history = input_data.get("history", [])
+        response = await agent_workflow(question, history)
     except Exception as e:
         return {"error": str(e)}
-    return response  # Directly return the dictionary response
+    return response
 
 
 if __name__ == "__main__":
