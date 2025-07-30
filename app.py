@@ -10,9 +10,19 @@ app = FastAPI(
 
 @app.post("/ask")
 async def ask_question(input_data: dict = Body(...)):
+
+    # 
+
+
     try:
         question = input_data.get("question", "")
         history = input_data.get("history", [])
+
+        # Reemplaza todos los roles "agent" por "assistant" # hotfix, should be fixed in agent's backend and frontend. 
+        for item in history:
+            if isinstance(item, dict) and item.get("role") == "agent":
+                item["role"] = "assistant"
+
         response = await agent_workflow(question, history)
     except Exception as e:
         return {"error": str(e)}
