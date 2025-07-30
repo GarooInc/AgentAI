@@ -21,11 +21,11 @@ conn = get_db_connection()
 
 class orchestator_agent_output (BaseModel):
     assigned_agents: Optional [List[Literal["data_analyst", "marketing_analyst"]]]  # ordered; [] if answering directly or awaiting clarification
-    user_question: Optional[str]
-    user_goal: Optional[str]
-    commentary: Optional[str]
+    user_question: Optional[str] = ""
+    user_goal: Optional[str] = ""
+    commentary: Optional[str] = ""
     requires_graph: bool = False
-    clarifying_question: Optional[str]   # new
+    clarifying_question: Optional[str] = ""   # new
 
 
 @function_tool
@@ -191,9 +191,9 @@ class analyst_output(BaseModel):
     """
     Output model for the Analyst-type agents.
     """
-    data: Optional[List[Dict[str, Any]]] # a table as JSON. 
-    findings: str # a list of findings made by analysts agents. 
-    clarifying_question: Optional[str]
+    data: Optional[List[Dict[str, Any]]] = {} # a table as JSON. 
+    findings: str = "" # a list of findings made by analysts agents. 
+    clarifying_question: Optional[str] = None
 
 
 
@@ -275,6 +275,8 @@ data_analyst = Agent(
 
         For complex questions, you can check `retrieve_query_examples` for examples of how to query the database. This should help you understand how to structure your queries.
         Be sure to always call this tool before running any query, so you can understand the columns available in the database.
+
+        Take also into account that wholesalers are in column `COMPANY_NAME`
 
         WORKFLOW
         1) Understand the question. If essential details (date range, segment, metric definition) are missing and block execution, return ONE concise clarifying question.
