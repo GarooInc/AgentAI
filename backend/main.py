@@ -1,126 +1,112 @@
 import asyncio
 import json
 from typing import Optional
+import traceback
+
 
 from agents import Agent, ItemHelpers, Runner, TResponseInputItem, function_tool, trace
+from openai import BaseModel
 from .auxiliary_functions import log, execute_graph_agent_code
 
 
 from .module_agents import (
-    evaluator_agent, 
-    evaluator_output,
-    analyst_output, 
-    reservations_data_analyst_agent,
-    marketing_strategist_agent,
-    judge_ruling,
-    judge_agent,
-    graph_code_agent
-
+    orchestrator_agent,
+    data_analyst,
+    marketing_analyst,
+    response_agent
 )
 
-async def agent_workflow(user_question: str, max_retries: int = 2 ) -> dict:
+async def agent_workflow(user_question: str, convo: list[TResponseInputItem] = [],  max_retries: int = 2 ) -> dict:
+    final_response = {"overall_time": 0, "data": {}, "markdown": ""}
+    stime = asyncio.get_event_loop().time()
+    convo = convo or []
+    convo.append({"role": "user", "content": user_question})
 
-    convo: list[TResponseInputItem] = []
+    try:
+        log("Starting agent's workflow.")
 
-    start_time = asyncio.get_event_loop().time()
+        # 1) run orchestrator agent. 
+        log("Running Orchestrator ...")
+        o_resp = await Runner.run(orchestrator_agent, convo)
+        o_out = o_resp.final_output
+        log(f"Orchestrator response: {o_out.assigned_agents}, {o_out.requires_graph}, {o_out.clarifying_question}")
 
-    convo = [{"role": "user", "content":user_question}]
-    eval_resp = await Runner.run(evaluator_agent, convo)
-    convo = eval_resp.to_input_list()
+        convo.append({
+            "role": "assistant",
+            "content": (
+                f"Orchestrator response: ["
+                f"Assigned Agents: {o_out.assigned_agents}, "
+                f"User Question: {o_out.user_question}, "
+                f"User Goal: {o_out.user_goal}, "
+                f"Commentary: {o_out.commentary}, "
+                f"Requires Graph: {o_out.requires_graph}, "
+                f"Clarifying Question: {o_out.clarifying_question}]"
+            )
+        })
 
 
-    log(f"Agente seleccionado: {eval_resp.final_output.appropriate_agent} \n")
-    log(f"Pregunta original: {eval_resp.final_output.original_question} \n")
-    log(f"Meta del usuario: {eval_resp.final_output.user_goal} \n")
-    log(f"Pregunta mejorada: {eval_resp.final_output.better_question} \n")
-    log(f"Información adicional: {eval_resp.final_output.additional_info} \n")
-    log(f"Plan de investigación: {eval_resp.final_output.research_plan} \n")
-    log(f"Necesita gráficos: {eval_resp.final_output.needs_graph} \n")
+        # 2) run analyst agents. 
+        if not o_out.clarifying_question and not o_out.clarifying_question == "": # orc no devuelve pregunta, continua el ciclo. 
 
-    # appropiate agent selection
-    if eval_resp.final_output.appropriate_agent == "Reservations Analyst":
-        agent = reservations_data_analyst_agent
-    elif eval_resp.final_output.appropriate_agent == "Marketing Strategist":
-        agent = marketing_strategist_agent
+            log("Orchestrator does not require clarification, proceeding with assigned agents.")
+            for analyst in o_out.assigned_agents:
+                log(f"Running agent: {analyst}")
+                if analyst == "data_analyst":
+                    response = await Runner.run(data_analyst, convo, max_turns=5)
+                    final_response["data"] = response.final_output.data # revisar. 
+                elif analyst == "marketing_analyst":
+                    response = await Runner.run(marketing_analyst, convo, max_turns=2)
+                else:
+                    raise ValueError(f"Unknown agent: {analyst}")
+                
+                log(f"Agent {analyst} finished. ")
 
-    
-    # first analysis run
-    an_resp = await Runner.run(agent, convo)
-    convo = an_resp.to_input_list()
-
-    # judge ruling and posterior runs. 
-    for _ in range(max_retries):
-        jinput = [
-            {
-                "role": "user",
-                "content": json.dumps({
-                    "original_question": eval_resp.final_output.original_question,
-                    "user_goal": eval_resp.final_output.user_goal,
-                    "data": an_resp.final_output.data,
-                    "report": an_resp.final_output.report
+                rout = response.final_output
+                convo.append({
+                    "role": "assistant",
+                    "content": (
+                        f"Data Analyst response: ["
+                        f"Data: {rout.data}, "
+                        f"Findings: {rout.findings}, "
+                        f"Clarifying Question: {rout.clarifying_question}]" # esto no me convence, hay que revisarlo. 
+                    )
                 })
-            }
-        ]
+                
 
-        jresp = await Runner.run(judge_agent, jinput)
-        ruling: judge_ruling = jresp.final_output
+        # 3) run graph agent if required.
+            if o_out.requires_graph:
+                pass
 
-        if ruling.veredict == 1 :
-            log(f"Judge ruling: {ruling.reason} - Analysis accepted.")
-            break # accepted. 
-        else:
-            # add feedback from judge to convo. 
-            log(f"Judge ruling: {ruling.reason} - Analysis rejected. Retrying...")
-            feedback = f"{ruling.reason}. Please adjust your analysis accordingly. Previous analysis were not enough. "
-            convo.append({"role":"user", "content":feedback})
-            an_resp = await Runner.run(agent, convo)
-            convo = an_resp.to_input_list()
+        # 4) run response agent.
+            log("Running Response Agent...")
+            response = await Runner.run(response_agent, convo)
+            out = response.final_output.markdown
 
+        # 5) prepare final response.
+            final_response["overall_time"] = asyncio.get_event_loop().time() - stime 
+            final_response["markdown"] = out
+            log(f"Response Agent finished.")
+            print(f"\n Respuesta de la suite de agentes:\n {out}\n")
 
-    if eval_resp.final_output.needs_graph:
-        log("Generating graphs...")
+        else: # orc si devuelve pregunta, devuelve la esa pregunta y termina el ciclo.
+            log("Orchestrator requires clarification.")
+            final_response["markdown"] = o_out.clarifying_question
+            final_response["overall_time"] = asyncio.get_event_loop().time() - stime
+            return final_response
         
-
-        try:
-            graph_payload = {
-                "table_data": an_resp.final_output.data,
-                "user_question": eval_resp.final_output.original_question
-            }
-
-            graph_res = await Runner.run(graph_code_agent, json.dumps(graph_payload))
-            graph_code = graph_res.final_output.code
-            log(f"Graph code generated: {graph_code}")
-
-            public_url = execute_graph_agent_code(graph_code, an_resp.final_output.data)
-            log(f"Graph URL: {public_url}")
-
-            log("Adding graph URL to the report...")
-            an_resp.final_output.report += f"\n\n![Ver gráfico generado]({public_url})"
-
-        except Exception as e:
-            log(f"Error generating graph: {e}")
-
-    # get final time
-    end_time = asyncio.get_event_loop().time()
-
-    log(f"REPORT: \n{an_resp.final_output.report}\n")
-
-
-    final_response = {
-        "time_stamp": end_time - start_time,
-        "original_question": eval_resp.final_output.original_question,
-        "user_goal": eval_resp.final_output.user_goal,
-        "data": an_resp.final_output.data,
-        "report": an_resp.final_output.report
-    }
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        log(f"Error in orchestrator: {e}\nTraceback:\n{error_details}")
+        return {"error": str(e), "details": error_details}
 
     return final_response
 
 
 
-    
+## Helper funcictions, should be deleted later.
 
-    
-
-
-    
+def print_convo(convo: list[TResponseInputItem]) -> None:
+    print("\nConversation history:")
+    for i, item in enumerate(convo):
+        print(f"{i+1}. Role: {item.get('role', 'N/A')}, Content: {item.get('content', 'N/A')}")
