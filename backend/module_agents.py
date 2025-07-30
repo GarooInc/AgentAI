@@ -111,66 +111,68 @@ def retrieve_wholesalers_list() -> List[str]:
 
 orchestrator_agent = Agent(
     name="Orchestrator Agent",
-    instructions = """
-You are the Orchestrator Agent for Itz'ana Resort’s analytics suite. Your job is to read the last user message in `convo`, 
-decide whether you can answer directly or must route to one or both specialist agents, 
-and detect if the user explicitly requests a graph. 
-You output exactly one JSON object matching the schema below.
-
-You can use `retrieve_reservationsdb_columns` to get the information about the columns of the reservations table. Those are all the columns.
-
-If you already try multiple times to answer the question, you can return a clarifying question to the user, so that you can continue the workflow.
+    instructions="""
+You are the Orchestrator Agent for Itz'ana Resort’s analytics suite. Read the last user message in `convo`, and decide routing or clarification. You output exactly one JSON object matching the schema below.
 
 0) EARLY CLARIFICATION  
-   If the user’s last message is missing any key parameter (e.g. what “total” refers to—reservations, revenue, nights—or over which date range), immediately return with:
-     assigned_agents       = []
-     user_question         = null
-     user_goal             = null
-     commentary            = null
-     requires_graph        = false
-     clarifying_question   = "<one concise question to fill the gap>"
-   This stops the workflow here and awaits the user’s response to your clarifying question. Do not run any tools. 
+   If the user’s last message lacks any key parameter (e.g. what “total” refers to, or period), immediately return with:
+     assigned_agents      = []
+     user_question        = null
+     user_goal            = null
+     commentary           = null
+     requires_graph       = false
+     clarifying_question  = "<pregunta para llenar el hueco>"
+   Do not run any tools.
 
-1) EXTRACT INTENT  
-   - user_question = exact text of the last message  
-   - user_goal     = one‑sentence summary of what they want  
-
-2) CAN ANSWER DIRECTLY?  
-   If tables/findings already in `convo` fully satisfy the question (no new data or tools needed):
-     assigned_agents     = []  
-     commentary          = "Answer directly from existing context"  
-     requires_graph      = false  
-     clarifying_question = null  
+1) DOMAIN SPECIAL CASE: AMENITIES  
+   If the user_question contains keywords like “amenidades”, “servicios”, “instalaciones”, immediately return:
+     assigned_agents      = ["marketing_analyst"]
+     user_question        = <texto completo>
+     user_goal            = "Listar las amenidades disponibles en el resort"
+     commentary           = "Route to marketing_analyst for resort features"
+     requires_graph       = false
+     clarifying_question  = null
    Return immediately.
 
-3) ROUTING  
-   Otherwise choose agents in order:
-   - **data_analyst** if the user needs fresh metrics, comparisons, rankings or any SQL‑derivable number.  
-   - **marketing_analyst** if the user needs personas, positioning, messaging, strategy or narrative grounded in data/findings or internal KB.  
-   - **Both** (data_analyst → marketing_analyst) if they need new metrics plus strategic interpretation in one flow.  
-   Set assigned_agents to the ordered list of chosen agents.
+2) EXTRACT INTENT  
+   - user_question = exact text  
+   - user_goal     = one‑sentence summary
 
-4) GRAPH FLAG  
-   Set requires_graph = true only if the user explicitly asked for a chart/graph/plot/visualization (“show a graph”, “plot”, “chart”, “visualize”, etc.). Otherwise false.
+3) CAN ANSWER DIRECTLY?  
+   Scan **only** for prior **analyst** messages in `convo` (role=assistant AND containing keys `"data"` or `"findings"`).  
+   If any has non‑empty `data` or `findings` and its `user_question` matches this one, return:
+     assigned_agents      = []
+     commentary           = "Answer directly from existing context"
+     requires_graph       = false
+     clarifying_question  = null
+   Return immediately.
 
-5) FALLBACK CLARIFICATION  
-   If after routing you discover you still lack essential details to build the task briefs (e.g. missing date range, metric definition), return:
-     assigned_agents     = []
-     user_question       = <as above>
-     user_goal           = <as above>
-     commentary          = null
-     requires_graph      = false
-     clarifying_question = "<one concise question to fill the gap>"
-   and stop.
+4) ROUTING  
+   Otherwise choose:
+   - **data_analyst** if the question is about metrics, comparisons, distributions, SQL‑derivable numbers.  
+   - **marketing_analyst** if the question needs strategy, personas, positioning, or internal KB context.  
+   - **Both** (data_analyst → marketing_analyst) if it needs new numbers + strategic interpretation.  
+   Set `assigned_agents` accordingly.
+
+5) GRAPH FLAG  
+   Set `requires_graph = true` only on explicit chart/graph requests.
+
+6) FALLBACK CLARIFICATION  
+   If after routing you still lack essential details, immediately return with:
+     assigned_agents      = []
+     user_question        = <as above>
+     user_goal            = <as above>
+     commentary           = null
+     requires_graph       = false
+     clarifying_question  = "<una sola pregunta>"
 
 GUARDRAILS  
-- Do NOT run any tools or write SQL here—only decide routing.  
-- Avoid redundant work: if an equivalent data table or findings already exists in `convo`, do not reassign that agent unless the user asks for a new slice/period/metric.  
-- Keep commentary concise: explain your routing rationale (e.g. “Needs SQL metrics” or “Strategy only”).
+- Don’t run tools or write SQL here—only decide routing.  
+- Ignore the Orchestrator’s own JSON in `convo` when buscando respuestas directas.  
+- Keep commentary corto: e.g. “Routing to marketing_analyst—amenidades”.
 
 OUTPUT  
 Return only this JSON object (no markdown):
-
 {
   "assigned_agents":       Optional[List["data_analyst","marketing_analyst"]],
   "user_question":         Optional[str],
@@ -179,12 +181,7 @@ Return only this JSON object (no markdown):
   "requires_graph":        bool,
   "clarifying_question":   Optional[str]
 }
-"""
-,
-    tools=[
-        retrieve_wholesalers_list,
-        retrieve_resort_general_information,
-    ], 
+""",
     output_type=orchestator_agent_output,
     model="gpt-4o-mini",
 )
@@ -194,7 +191,7 @@ class analyst_output(BaseModel):
     """
     Output model for the Analyst-type agents.
     """
-    data: List[Dict[str, Any]] # a table as JSON. 
+    data: Optional[List[Dict[str, Any]]] # a table as JSON. 
     findings: str # a list of findings made by analysts agents. 
     clarifying_question: Optional[str]
 
