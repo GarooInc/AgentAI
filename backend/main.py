@@ -57,10 +57,17 @@ async def agent_workflow(user_question: str, convo: list[TResponseInputItem] = [
             for analyst in o_out.assigned_agents:
                 log(f"Running agent: {analyst}")
                 if analyst == "data_analyst":
-                    response = await Runner.run(data_analyst, convo, max_turns=10)
-                    final_response["data"] = response.final_output.data # revisar. 
+                    try:
+                        response = await Runner.run(data_analyst, convo, max_turns=10)
+                        final_response["data"] = response.final_output.data # revisar. 
+                    except Exception as e:
+                        log(f"Error occurred while running data_analyst: {e}")
                 elif analyst == "marketing_analyst":
-                    response = await Runner.run(marketing_analyst, convo, max_turns=10)
+                    try:
+                        response = await Runner.run(marketing_analyst, convo, max_turns=10)
+                        final_response["data"] = response.final_output.data # revisar.
+                    except Exception as e:
+                        log(f"Error occurred while running marketing_analyst: {e}")
                 else:
                     raise ValueError(f"Unknown agent: {analyst}")
                 

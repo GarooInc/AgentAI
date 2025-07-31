@@ -287,7 +287,7 @@ data_analyst = Agent(
         For complex questions, you can check `retrieve_query_examples` for examples of how to query the database. This should help you understand how to structure your queries.
         Be sure to always call this tool before running any query, so you can understand the columns available in the database.
 
-        Take also into account that wholesalers are in column `COMPANY_NAME`
+        Take also into account that wholesalers are in column `COMPANY_NAME`. If the user is referring to 'mayoristas' is also wholesalers. 
 
         WORKFLOW
         1) Understand the question. If essential details (date range, segment, metric definition) are missing and block execution, return ONE concise clarifying question.
@@ -340,42 +340,46 @@ data_analyst = Agent(
 #                                                     Marketing Strategist Agent
 # -----------------------------------------------------------------------------------------------------------------------------------------
 
+# In module_agents.py
+
 marketing_analyst = Agent(
-    name="Marketing Analyst",
+    name="marketing_analyst",
 
     instructions = """
-        You are the Marketing Analyst for Itz'ana Resort. Produce a detailed, well‑reasoned marketing strategy grounded in 
+        You are the Marketing Analyst for Itz'ana Resort. Produce a detailed, well-reasoned marketing strategy grounded in 
         (a) the latest tables/findings already present in `convo` and 
-        (b) the hotel’s internal knowledge base. You MAY invoke WebSearchTool() only if the internal KB cannot answer essential context. Never produce charts or code.
+        (b) the hotel’s internal knowledge base.
 
-        SCOPE
-        - Personas, positioning, seasonality, amenity fit, messaging angles, offers/bundles, channel/campaign ideas, retention/CRO, on‑property upsell/cross‑sell, pricing levers (non‑binding).
-        - Do NOT invent numbers. If you reference quantities, they must come from `convo` tables/findings or reputable sources found via WebSearchTool().
+        **Step 1: Load KB Once.**
+        - If there is **no** prior tool output from `retrieve_resort_general_information()` in `convo`, call it exactly once now.
+        - Otherwise, skip directly to drafting output.
 
-        WORKFLOW
-        1) Understand the user’s goal from the last message in `convo`.
-        2) Anchor all claims to `convo` data when present; you may compute simple proportions/deltas from that data.
-        3) Fill gaps from the internal KB first. If still insufficient, invoke WebSearchTool() sparingly (≤3 reputable sources) and integrate findings.
-        4) If essential details are missing and block the work, return ONLY a single clarifying question (no strategy).
+        **Step 2: Draft Output.**
+        - Immediately synthesize your strategy into a single JSON object.
+        - Do **not** call any tools after this step.
 
-        STYLE & CONSTRAINTS
-        - Plain text only (no markdown). Use absolute dates (YYYY‑MM‑DD) for time references.
-        - Be specific and hotel‑aware; avoid generic advice.
-        - If certain metrics are not derivable from available data (e.g., true occupancy without inventory), state the limitation and propose a minimal proxy or the smallest extra data needed.
+        WORKFLOW:
+        1. Inspect `convo` for a previous `retrieve_resort_general_information()` result.
+        2. If absent, invoke `retrieve_resort_general_information()` and append its result to `convo`.
+        3. Write and return your final JSON — do **not** loop back to any tool calls.
 
-        OUTPUT — return ONLY this JSON object (no markdown):
+        SCOPE:
+        - Personas, positioning, seasonality, amenity fit, messaging angles, offers/bundles, channel/campaign ideas, retention/CRO, on-property upsell/cross-sell, pricing levers.
+        - Do **not** invent numbers. If you reference metrics, they must originate from `convo` data or ≤3 reputable WebSearchTool() sources.
+
+        OUTPUT — return **only** this JSON object (no markdown):
         {
-        "data": [],  // marketing_analyst does not return tables; always set to null
-        "findings": "A cohesive strategy narrative in plain text. Internally label sections like: Insights:, Actions:, Assumptions:, Sources:. If WebSearchTool() was used, include the link under Sources:. You need to be thorough in your analysis and recommendations. Always relate it to the user's goal, the data in convo and the internal knowledge base. You can extend the analysis to include the latest trends in the industry, the resort's positioning, and how it can leverage its unique features to attract more guests.",
-        "clarifying_question": "<Only if blocking details are missing; else ''>"
+          "data": null,
+          "findings": "<your comprehensive strategy narrative>",
+          "clarifying_question": ""
         }
-        If you set a non‑empty clarifying_question, keep findings empty ('') and data null.
-        """
-    ,
+    """,
+
     output_type=AgentOutputSchema(analyst_output, strict_json_schema=False),
     tools=[retrieve_resort_general_information, WebSearchTool()],
     model="gpt-4o-mini",
 )
+
 
 # -----------------------------------------------------------------------------------------------------------------------------------------
 #                                                     Response Agent
