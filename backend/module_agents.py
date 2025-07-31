@@ -288,6 +288,8 @@ data_analyst = Agent(
         Be sure to always call this tool before running any query, so you can understand the columns available in the database.
 
         Take also into account that wholesalers are in column `COMPANY_NAME`. If the user is referring to 'mayoristas' is also wholesalers. 
+        If a term is being used, that does not correspond to the name of a column in the database, it may be a wholesaler or a value of the origin of booking column. You are encouraged to explore using `pragma table_info('reservations')` to understand the columns available in the database.
+        Terms like 'Walk-In', 'Wholesale', 'Email', 'Online Travel Agency' are referring to the origin of booking column.
 
         WORKFLOW
         1) Understand the question. If essential details (date range, segment, metric definition) are missing and block execution, return ONE concise clarifying question.

@@ -4,7 +4,7 @@ This file contains examples of queries that can be used with the AgentAI system.
 ## Identifying three buyer personas
 following the question: "Using data from the reservations, identify three distinct buyer personas for Itz'ana Resort. For each persona, provide a the average spending, the average lenght of stay and the preferred room type."
 
-```
+``` sql
 WITH base AS (
   SELECT
     ROOM_CATEGORY_LABEL,
@@ -68,4 +68,15 @@ ORDER BY CASE a.buyer_persona
   WHEN 'Family'     THEN 3
   ELSE 4
 END;
+```
+
+## Gettinng the global revenue generated from 'Walk-In' reservations
+Following the question: "Cual es la venta generada por Walk-In"?
+
+'Walk-In' is a term used to refer to reservations made directly at the hotel without prior booking. In the database, this is represented in the `ORIGIN_OF_BOOKING` column.
+
+``` sql
+Select SUM(EFFECTIVE_RATE_AMOUNT)
+    from reservations
+where ORIGIN_OF_BOOKING = 'Walk‑In'
 ```
