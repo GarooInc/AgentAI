@@ -2,6 +2,9 @@
 
 The following are the distict names used in the `ORIGIN_OF_BOOKING` column of the `reservations` table. 
 These names are used to categorize how a reservation was made, such as through an online travel agency, direct booking, or other means.
+
+If any term in the question is similar, you need to use the exact term from this list.
+
 Be sure to use this names, exactly as they appear here:
 
 - Internet Booking Engine (direct website booking)
@@ -31,6 +34,5 @@ Be sure to use this names, exactly as they appear here:
 - FIX
 - SYXN
 
-If any term in the question is similar, you need to use the exact term from this list.
 
 If the term is not in the list, it may be a value of the `COMPANY_NAME` column.

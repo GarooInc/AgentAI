@@ -1,0 +1,122 @@
+# Wholesalers List
+The following are the distinct names used in the `COMPANY_NAME` column of the `reservations` table to identify wholesalers.
+
+Be aware that the user may not know the exact term present on the DB, so you need to find coincidences with the terms present on the list. 
+
+If any term in the question is similar, you need to use the exact term from the list. 
+
+Be sure to use these names exactly as they appear here:
+
+- EXPEDIA, INC.
+- BOOKING.COM
+- Namu Travels
+- Ultimate Jet Vacat
+- BTIA
+- Guat2do Travel Exp
+- PTP MUNDO MAYA
+- Maya Sky Tour Oper
+- Adra Hostel Peten
+- Tikal Go Tours
+- Expedición Panamun
+- La Camioneta Tours
+- Guatemalan Adventu
+- TESSA Guatemala y
+- Tikal Adventures
+- Absolute Belize
+- GIFTED TRAVEL NETW
+- NCL (BAHAMAS) LTD
+- World of HyattT- Jonathan Rowney
+- VISION TRAVEL DT O
+- Blue Paralell
+- ID Travel Group
+- FEATHER AND FLIP I
+- Ka'ana
+- Sabre Wing Travel
+- The M W Collective
+- World of Hyatt
+- Embark Beyond
+- Way To Go Tours
+- Primetour
+- Hotel Trader
+- LAKE TAHOE TRAININ
+- Darah Travel
+- Anthology Travel
+- KAANA
+- CASSIS TRAVEL SERV
+- World of HyattT- World of Hyatt
+- FROSCH INTERNATION
+- Albee Adventures
+- BTB - Belize Touri
+- Selections Travel 
+- Smart Flyer
+- SLH withIN - SuiteT- CORONET TRAVEL LTD
+- Ministry of Health
+- Travel Pioneers
+- Belize Water Servi
+- Fora Travel Inc.
+- Memorable Costa Ri
+- Eco America Tours
+- TABLET LLC
+- 45 BUYERS GROUP IN
+- INEGISA
+- Essentialist
+- Belize Tourism Boa
+- Elite Black Retrea
+- DEPARTURE LOUNGE L
+- Itz'ana Management
+- HUFFMAN TRAVEL LIM
+- DOMINICAN REPUBLICT- Munditur S.A.S
+- "DOMINICAN REPUBLICT- EXPEDIA, INC."
+- Ministry of Foreig
+- Munditur S.A.S
+- Grand Hotel du Pal
+- Holly NeSMith Trav
+- S & L Travel & Tou
+- PLEASANT HOLIDAYS 
+- Roeming
+- Maya Trails
+- CADENCE TRAVEL INC
+- Ka'anaT- CADENCE TRAVEL INC
+- STP Guatemala
+- Sara Hollander
+- Anywhere Belize
+- TZELL HOLDINGS LLC
+- Go way Travel Cana
+- CSB TRAVEL LLC
+- Fyffes
+- Santander Sugar Fa
+- Condor Verde Trave
+- Ministry Of Natura
+- FORA TRAVEL INC
+- BELLA ROSE TRAVEL 
+- Belizean Travel
+- Indagare
+- THE SMART FLYER IN
+- MATUETE EXPEDICOES
+- Viaventure
+- Travel-Well Enterp
+- AIR CANADA VACATIO
+- WESTJET VACATIONS 
+- ALTOUR DELAWARE LL
+- Lorraine Simpson
+- Avanti
+- COASTLINE TRAVEL A
+- Scenset.com
+- Grupo Sostavisa
+- G Adventures
+- Epic Travel
+- G AdventuresT- G Adventures
+- C.M Saunders Exped
+- THE TYNAN TRAVEL C
+- Sol Petroleum
+- PTP guatemala
+- Copal Tree Lodge
+- ID Travel group
+- Bowen & Bowen
+- Plexar Capital Lim
+- Wahoo Classic Fish
+- Felipe Ucros Engag
+- "Felipe Ucros EngagT- EXPEDIA, INC."
+- Landed Travel
+
+If the term is not in the list, it may be a value of `ORIGIN_OF_BOOKING` column. 
