@@ -16,7 +16,7 @@ from .module_agents import (
     response_agent
 )
 
-async def agent_workflow(user_question: str, convo: list[TResponseInputItem] = [],  max_retries: int = 2 ) -> dict:
+async def agent_workflow(user_question: str, convo: list[TResponseInputItem] = [],  max_retries: int = 10 ) -> dict:
 
     log("Convo: ")
     for message in convo:
@@ -32,7 +32,7 @@ async def agent_workflow(user_question: str, convo: list[TResponseInputItem] = [
 
         # 1) run orchestrator agent. 
         log("Running Orchestrator ...")
-        o_resp = await Runner.run(orchestrator_agent, convo)
+        o_resp = await Runner.run(orchestrator_agent, convo, max_turns=10)
         o_out = o_resp.final_output
         log(f"Orchestrator response: {o_out.assigned_agents}, {o_out.requires_graph}, {o_out.clarifying_question}")
 
@@ -57,10 +57,10 @@ async def agent_workflow(user_question: str, convo: list[TResponseInputItem] = [
             for analyst in o_out.assigned_agents:
                 log(f"Running agent: {analyst}")
                 if analyst == "data_analyst":
-                    response = await Runner.run(data_analyst, convo, max_turns=5)
+                    response = await Runner.run(data_analyst, convo, max_turns=10)
                     final_response["data"] = response.final_output.data # revisar. 
                 elif analyst == "marketing_analyst":
-                    response = await Runner.run(marketing_analyst, convo, max_turns=2)
+                    response = await Runner.run(marketing_analyst, convo, max_turns=10)
                 else:
                     raise ValueError(f"Unknown agent: {analyst}")
                 
@@ -91,7 +91,7 @@ async def agent_workflow(user_question: str, convo: list[TResponseInputItem] = [
             final_response["overall_time"] = asyncio.get_event_loop().time() - stime 
             final_response["markdown"] = out
             log(f"Response Agent finished.")
-            print(f"\n Respuesta de la suite de agentes:\n {out}\n")
+            print(out.replace('\n', r'\n'))
 
         else: # orc si devuelve pregunta, devuelve la esa pregunta y termina el ciclo.
             log("Orchestrator requires clarification.")

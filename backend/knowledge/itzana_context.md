@@ -1,78 +1,108 @@
-# Itz'ana Resort & Residences - Base de Conocimiento
+# Itz’ana Resort & Residences
 
-## 1. Identidad y Ubicación
+## Overview
+Itz’ana Resort & Residences is a luxury Belizean resort nestled between the turquoise waters of the Caribbean Sea and lush tropical rainforest. Guests are invited to relax beside radiant pools, indulge in holistic spa therapies, stroll white-sand beaches, and explore an organic garden. With world-class amenities and tailor-made experiences, Itz’ana offers an immersive escape designed for renewal and adventure.
 
-Resort de lujo en Placencia, Belice, rodeado por el mar Caribe y la selva tropical. Filosofía de “lujo bohemio con espíritu aventurero”, punto de partida para explorar la segunda barrera de coral más grande del mundo y zonas arqueológicas mayas. Renovado y ampliado en 2018.
+---
 
-## 2. Tipos de Alojamiento
+## Location
+**Mile 20 Placencia Road,**  
+Placencia, Stann Creek District, Belize
 
-- **Villas**: 1 a 3 dormitorios, plunge pools, cocinas, chef privado, spa en villa, bar privado y mayordomo.
-- **Penthouses**: 2 y 3 habitaciones, terrazas amplias con plunge pools.
-- **Beachfront Suites**: cama king, salón, comedor, terraza privada.
-- **Deluxe Rooms**: junto a la piscina, terraza privada.
-  Precios dinámicos según temporada y perfil de cliente.
+Located just kilometers from the world’s second-largest barrier reef, Itz’ana is the perfect launch point for fishing, diving, snorkeling and leisure sailing. The full-service marina features 18 docks, sports-fishing outfitting, a provisioning shop and refueling station.
 
-## 3. Servicios y Amenidades
+---
 
-- Piscinas exteriores (filtración por ozono).
-- Playa privada: kayaks, paddle boards, cine en la playa.
-- Spa con tratamientos profesionales.
-- Yoga Deck frente al mar.
-- Marina con acceso a navegación y pesca.
-- The Shop at Itz’ana: ropa internacional y artesanías.
-- Great House con diseño colonial y muebles artesanales.
-- Pet Friendly (una mascota máx. 18 kg).
+## Accommodation
 
-## 4. Gastronomía y Bebidas
+### Villas  
+All villas feature private plunge pools, chef’s kitchens, lavish linens and direct beach access. In-villa enhancements include: private chef, butler service, spa treatments, nanny service and a fully stocked bar.
 
-- Limilia Restaurant: cocina caribeña con ingredientes locales.
-- Nadu: pop-up para grupos +15, menú de temporada.
-- Bares: Biblio Bar, Private Owner’s Lounge, Luna Bar, Pool Bar, Rum Room.
-- Actividades culinarias: brunch, tacos, mixología.
+- **1-Bedroom Beachfront Villa**  
+  An intimate hideaway with sweeping sea views, private terrace and plunge pool—just steps from the Caribbean.
 
-## 5. Actividades y Aventuras
+- **2-Bedroom Beachfront Villa**  
+  Modern décor, two en-suite bedrooms, open-plan living/kitchen, outdoor plunge pool and indoor courtyard pool—ideal for families or small groups.
 
-- Sailing & Snorkeling, buceo en la barrera de coral.
-- Reserva de jaguares Cockscomb, Bocawina National Park (tirolesa y rappel).
-- Paseos a caballo en la selva.
-- Tours de cacao y elaboración de chocolate.
-- Exploración arqueológica en sitios mayas (Tikal, Caracol, etc.).
-- Yoga, cine en la playa y Artisan Market mensual.
+- **3-Bedroom Beachfront Villa**  
+  1,470 m² of living space seamlessly blending indoor/outdoor areas, two plunge pools, interior courtyard and striking ocean-front master suite.
 
-## 6. Eventos y Bodas
+### Penthouses  
+Elevate your stay with sweeping views, expansive living space and private pools atop Resort Suites.
 
-- Espacios: Limilia Deck (122), Great House (150), Yoga Deck (70), Playa Privada (150).
-- Ceremonias temáticas con chamanes mayas.
-- Alquiler de mobiliario/equipo externo.
-- Catering (buffets: Mediterranean, American, Grill, Caribbean) y open bar (Relax, Deluxe, Premium).
+- **2-Bedroom Penthouse**  
+  287 m² of interior/exterior space, chef’s kitchen, integrated living/dining and a generous terrace with private pool overlooking both the resort pool and Caribbean.
 
-## 7. Operación y Logística
+- **3-Bedroom Penthouse**  
+  Luxurious retreat for families or groups, featuring three bedrooms, 3.5 baths, plunge pool terrace and panoramic sea vistas.
 
-- Vuelo doméstico Belice-Placencia (30 min) o transporte terrestre (2.5 h).
-- Resort a 7 min de Placencia y 3.5 h de Belice City.
-- Concierge gestiona alquiler de autos y traslados.
-- Vuelo redondo ~USD 315/persona (variable).
+### Suites & Rooms  
+- **Beachfront Suite**  
+  Elegant finishings, king bed, living/dining area and wraparound terrace on one of Belize’s most picturesque beaches. Ideal for sunset viewing.
 
-## 8. Actividades Recurrentes y Comunidad
+- **Deluxe Room**  
+  Tranquil poolside setting, private terrace with daybed, high-end amenities and direct access to the resort pool.
 
-- Artisan Market mensual en playa/piscina.
-- Clases de yoga diarias.
-- Martini Club semanal en Biblio Bar.
-- Beach Cinema nocturno.
-- Eventos culinarios en Luna Bar.
+---
 
-## 9. Estrategias de Management y Marketing
+## Dining & Bars
 
-- Experiencias diferenciadas, personalizadas y sostenibles.
-- Segmentación clara (familias, bienestar, aventura, gastronomía).
-- Revenue Management dinámico y controlado.
-- Alianzas con proveedores locales y artesanos.
-- Actividades regulares que fortalecen comunidad y fidelización.
+### Signature Restaurants  
+- **Limilia Restaurant**  
+  Celebrates fresh Caribbean flavors with Garífuna influences. Seasonal, seafood-focused menus feature farm-fresh organic produce and locally caught fish. Dine overlooking the pool and ocean in both indoor and al fresco settings.
 
-## 10. Datos Financieros Relevantes
+- **Nadu Pop-Up**  
+  “Nadu” means “tree” in Garífuna. This exclusive, seasonal experience under the canopy blends sustainable, farm-to-table grilling with panoramic sea views. Available by prior arrangement for groups of 15+.
 
-- Ingresos: alojamiento, gastronomía, experiencias y eventos.
-- Margen atractivo en servicios complementarios.
-- Eventos como estabilizadores de ocupación.
-- Modelo de alquiler de mobiliario externo.
-- Flexibilidad operativa y diversificación.
+### Bars & Lounges  
+- **Biblio Bar**  
+  A curated selection of craft cocktails, beers, wines and light bites in a relaxed library-inspired setting.
+
+- **Private Owner’s Lounge**  
+  An intimate salon for residents and guests, offering premium spirits, wines and cocktails.
+
+- **Luna Bar**  
+  Casual beachfront spot serving artisan cocktails, wines and beers.
+
+- **Pool Bar**  
+  Refreshing tropical drinks, cocktails and cold beverages steps from the pool.
+
+- **Rum Room**  
+  Explore Caribbean and Central American rums selected by our in-house sommelier.
+
+---
+
+## Activities & Excursions
+Experience the best of Belize through expert-led adventures:
+
+- **Wildlife & Nature**: Nighttime jungle walks, jaguar-spotting, zip-lining through the canopy.  
+- **Marine Exploration**: Snorkeling and diving on the barrier reef, sport fishing, sunset cruises on Placencia Lagoon.  
+- **Cultural & Culinary**: Farm tours, cacao plantation visits, Garífuna cultural excursions.
+
+Discover all beach-side adventures and guided excursions with our concierge team.
+
+---
+
+## Events & Meetings
+
+### Venues
+- **Limilia Deck**  
+  Open-air setting amid lush foliage overlooking the sea, seating up to 122 guests—perfect for receptions and alfresco dinners.
+
+- **Great House**  
+  Elegant indoor pavilion for formal events and large receptions, accommodating up to 150 guests in refined surroundings.
+
+- **Yoga Deck**  
+  Elevated ocean-view platform for intimate ceremonies and private gatherings of up to 70 guests.
+
+- **Private Beach**  
+  Seaside venue for up to 150 guests, ideal for beach weddings and ceremonies against a natural Caribbean backdrop.
+
+**Note:** Itz’ana does not provide in-house furniture or AV equipment. We recommend our trusted vendor partners for rentals and will coordinate logistics on your behalf.
+
+### Event Services
+- **Themed Ceremonies**: Customizable weddings, including Maya-led spiritual ceremonies.  
+- **Catering Buffets**: Mediterranean, American, Meet & Grill and Caribbean-inspired menus for groups of 30–100.  
+- **Open Bar Packages**: Relax, Deluxe and Premium tiers with premium spirits, per-hour pricing and corkage options.
+
+For pricing, availability and personalized proposals, please reach out to our Events Manager, Mr. Diego.
