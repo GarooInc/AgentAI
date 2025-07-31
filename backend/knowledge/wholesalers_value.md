@@ -1,12 +1,3 @@
-# Wholesalers List
-The following are the distinct names used in the `COMPANY_NAME` column of the `reservations` table to identify wholesalers.
-
-Be aware that the user may not know the exact term present on the DB, so you need to find coincidences with the terms present on the list. 
-
-If any term in the question is similar, you need to use the exact term from the list. 
-
-Be sure to use these names exactly as they appear here:
-
 - EXPEDIA, INC.
 - BOOKING.COM
 - Namu Travels
@@ -118,5 +109,3 @@ Be sure to use these names exactly as they appear here:
 - Felipe Ucros Engag
 - "Felipe Ucros EngagT- EXPEDIA, INC."
 - Landed Travel
-
-If the term is not in the list, it may be a value of `ORIGIN_OF_BOOKING` column. 

@@ -204,23 +204,41 @@ class better_questions_output(BaseModel):
     context: Optional[str] = None  # Optional context to help refine the question, if available.
 
 @function_tool
-def retrieve_origin_of_booking_values() -> Dict[str, str]:
+def retrieve_origin_of_booking_values() -> List[str]:
     """
     Retrieves the possible values for the 'Origin of Booking' column from the reservations table.
 
     Returns:
         A dictionary where keys are the origin of booking values and values are their descriptions.
     """
-
     log("Retrieving origin of booking values from origin_of_booking_values.md")
-    import os
-    # Define the path to the origin_of_booking_values.md file
-    file_path = os.path.join(os.path.dirname(__file__), 'knowledge', 'origin_of_booking_values.md')
 
+    # each line is like "- EXPEDIA, INC". You need to take out the "- ". The rest should be the value.
+    file_path = os.path.join(os.path.dirname(__file__), 'knowledge', 'origin_of_booking_values.md')
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
-            values = [line.strip() for line in file if line.strip()]
-            return {value: value for value in values}  # Return a dict with value as both key and value
+            values = [line.strip()[2:] for line in file if line.strip() and line.startswith('- ')]
+            return values
+    except FileNotFoundError:
+        raise FileNotFoundError(f"The file {file_path} does not exist.")
+    except Exception as e:
+        raise RuntimeError(f"An error occurred while reading the file: {e}")
+
+
+@function_tool
+def retrieve_wholesalers_values() -> List[str]:
+    """
+    Retrieves the possible values for the 'Wholesalers' column from the wholesalers_value.md file.
+    Returns:
+        A dictionary where keys are the wholesalers values and values are their descriptions.
+    """
+    log("Retrieving wholesalers values from wholesalers_value.md")
+    # each line is like "- EXPEDIA, INC". You need to take out the "- ". The rest should be the value.
+    file_path = os.path.join(os.path.dirname(__file__), 'knowledge', 'wholesalers_value.md')
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            values = [line.strip()[2:] for line in file if line.strip() and line.startswith('- ')]
+            return values
     except FileNotFoundError:
         raise FileNotFoundError(f"The file {file_path} does not exist.")
     except Exception as e:
@@ -238,10 +256,11 @@ better_questions_agent = Agent(
 
         **Key Responsibilities:**
         1. **Detect and map domain terms:**
-           - If the question mentions wholesalers (e.g., “mayoristas”), call `retrieve_wholesalers_list()`
-             and replace with the exact company names from the database.
-           - If it mentions booking-origin channels (e.g., “walk ins”, “OTA”, “FIT”), call `retrieve_origin_of_booking_values()`
-             and replace with the exact code (e.g., 'WLK', 'OTA', 'FIT') used in the `ORIGIN_OF_BOOKING` column.
+            - Identify terms like "mayoristas", "origen de reserva", "wholesaler", "origin of booking", etc. Anything that might refer to a specific value in a column. 
+            - The user may not know the exact terms present in the database, so you need to find coinciding terms. 
+            - Use the `retrieve_wholesalers_values` and `retrieve_origin_of_booking_values` tools to get the exact values present in the database. 
+            - Then, replace the term in the question with the exact value from the list. The data_analyst agent will be unable to execute it's task if the name is not correctly mapped.
+
         2. **Clarify date ranges and metrics:**
            - Ensure the question specifies exact date filters (YYYY-MM-DD).
            - Confirm the aggregation or metric requested (SUM, COUNT, AVG, etc.).
@@ -269,7 +288,7 @@ better_questions_agent = Agent(
     """,
     output_type=AgentOutputSchema(better_questions_output, strict_json_schema=False),
     model="gpt-4o-mini",
-    tools=[retrieve_reservationsdb_columns, retrieve_wholesalers_list, retrieve_origin_of_booking_values],
+    tools=[retrieve_reservationsdb_columns, retrieve_wholesalers_values, retrieve_origin_of_booking_values],
 )
 
 
