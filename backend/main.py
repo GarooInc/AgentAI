@@ -59,10 +59,12 @@ async def agent_workflow(user_question: str, convo: list[TResponseInputItem] = [
                 log(f"Running agent: {analyst}")
                 if analyst == "data_analyst":
                     try:
-
+                        log("Running better questions agent...")
                         bresponse = await Runner.run(better_questions_agent, convo, max_turns=10)
                         bq = bresponse.final_output.refined_question
+                        log(f"Better Questions Agent response: {bq}")
                         bc = bresponse.final_output.context
+                        log(f"Better Questions Agent context: {bc}")
 
                         convo.append({
                             "role": "assistant",
