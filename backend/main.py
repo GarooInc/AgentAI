@@ -13,7 +13,8 @@ from .module_agents import (
     orchestrator_agent,
     data_analyst,
     marketing_analyst,
-    response_agent
+    response_agent,
+    better_questions_agent
 )
 
 async def agent_workflow(user_question: str, convo: list[TResponseInputItem] = [],  max_retries: int = 10 ) -> dict:
@@ -58,6 +59,20 @@ async def agent_workflow(user_question: str, convo: list[TResponseInputItem] = [
                 log(f"Running agent: {analyst}")
                 if analyst == "data_analyst":
                     try:
+
+                        bresponse = await Runner.run(better_questions_agent, convo, max_turns=10)
+                        bq = bresponse.final_output.refined_question
+                        bc = bresponse.final_output.context
+
+                        convo.append({
+                            "role": "assistant",
+                            "content": (
+                                f"Better Questions Agent response: ["
+                                f"Refined Question: {bq}, "
+                                f"Context: {bc}]"
+                            )
+                        })
+
                         response = await Runner.run(data_analyst, convo, max_turns=10)
                         final_response["data"] = response.final_output.data # revisar. 
                     except Exception as e:
