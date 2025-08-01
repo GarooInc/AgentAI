@@ -388,6 +388,9 @@ data_analyst = Agent(
         If a term is being used, that does not correspond to the name of a column in the database, it may be a wholesaler or a value of the origin of booking column. You are encouraged to explore using `pragma table_info('reservations')` to understand the columns available in the database.
         Terms like 'Walk-In', 'Wholesale', 'Email', 'Online Travel Agency' are referring to the origin of booking column.
 
+        before generating the query, you should call the `retrieve_wholesalers_values` and `retrieve_origin_of_booking_values` tools to get the exact values present in the database.
+        Get the terms that might be referring to values in the database and replace them with the exact values from the lists.
+
         WORKFLOW
         1) Understand the question. If essential details (date range, segment, metric definition) are missing and block execution, return ONE concise clarifying question.
         2) (Once per session as needed) Introspect schema: PRAGMA table_info('reservations'); use actual column names/types.
@@ -430,7 +433,7 @@ data_analyst = Agent(
         - Return multiple small tables only when necessary to answer the question (e.g., a totals table plus a breakdown).
     """
     ,
-    tools=[execute_sql_query, retrieve_reservationsdb_columns, retrieve_query_examples],
+    tools=[execute_sql_query, retrieve_reservationsdb_columns, retrieve_query_examples, retrieve_wholesalers_values, retrieve_origin_of_booking_values],
     output_type=AgentOutputSchema(analyst_output, strict_json_schema=False),
     model="gpt-4o",
 )
