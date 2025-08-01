@@ -59,20 +59,23 @@ async def agent_workflow(user_question: str, convo: list[TResponseInputItem] = [
                 log(f"Running agent: {analyst}")
                 if analyst == "data_analyst":
                     try:
-                        log("Running better questions agent...")
-                        bresponse = await Runner.run(better_questions_agent, convo, max_turns=10)
-                        bq = bresponse.final_output.refined_question
-                        log(f"\tBetter Questions Agent response: {bq}")
-                        bc = bresponse.final_output.context
-                        log(f"\tBetter Questions Agent context: {bc}")
-                        convo.append({
-                            "role": "assistant",
-                            "content": (
-                                f"Better Questions Agent response: ["
-                                f"Refined Question: {bq}, "
-                                f"Context: {bc}]"
-                            )
-                        })
+                        try:
+                            log("Running better questions agent...")
+                            bresponse = await Runner.run(better_questions_agent, convo, max_turns=10)
+                            bq = bresponse.final_output.refined_question
+                            log(f"\tBetter Questions Agent response: {bq}")
+                            bc = bresponse.final_output.context
+                            log(f"\tBetter Questions Agent context: {bc}")
+                            convo.append({
+                                "role": "assistant",
+                                "content": (
+                                    f"Better Questions Agent response: ["
+                                    f"Refined Question: {bq}, "
+                                    f"Context: {bc}]"
+                                )
+                            })
+                        except Exception as e:
+                            log(f"Error running better questions agent: {e}")
                         response = await Runner.run(data_analyst, convo, max_turns=10)
                         final_response["data"] = response.final_output.data # revisar. 
                     except Exception as e:

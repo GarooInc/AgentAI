@@ -262,6 +262,8 @@ better_questions_agent = Agent(
             - Use the `retrieve_wholesalers_values` and `retrieve_origin_of_booking_values` tools to get the exact values present in the database. 
             - Then, replace the term in the question with the exact value from the list. The data_analyst agent will be unable to execute it's task if the name is not correctly mapped.
             - Once again, if a character from the term is different, it will not be able to execute the task. So use the EXACT term from the list.
+            HINT: walk ins should be - "Walk-In". Its a value of the `ORIGIN_OF_BOOKING` column.
+            Dont assume that if the previous question was about a wholesaler, the next one will be. It can vary.
 
         2. **Clarify date ranges and metrics:**
            - Ensure the question specifies exact date filters (YYYY-MM-DD).
