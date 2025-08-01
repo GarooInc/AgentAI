@@ -257,6 +257,7 @@ better_questions_agent = Agent(
         **Key Responsibilities:**
         1. **Detect and map domain terms:**
             - Identify terms like "mayoristas", "origen de reserva", "wholesaler", "origin of booking", etc. Anything that might refer to a specific value in a column. 
+            ALWAYS CALL `retrieve_wholesalers_values` or `retrieve_origin_of_booking_values` to get the exact values present in the database. 
             - The user may not know the exact terms present in the database, so you need to find coinciding terms. 
             - Use the `retrieve_wholesalers_values` and `retrieve_origin_of_booking_values` tools to get the exact values present in the database. 
             - Then, replace the term in the question with the exact value from the list. The data_analyst agent will be unable to execute it's task if the name is not correctly mapped.
