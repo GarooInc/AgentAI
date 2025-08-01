@@ -261,6 +261,7 @@ better_questions_agent = Agent(
             - The user may not know the exact terms present in the database, so you need to find coinciding terms. 
             - Use the `retrieve_wholesalers_values` and `retrieve_origin_of_booking_values` tools to get the exact values present in the database. 
             - Then, replace the term in the question with the exact value from the list. The data_analyst agent will be unable to execute it's task if the name is not correctly mapped.
+            - Once again, if a character from the term is different, it will not be able to execute the task. So use the EXACT term from the list.
 
         2. **Clarify date ranges and metrics:**
            - Ensure the question specifies exact date filters (YYYY-MM-DD).
@@ -283,7 +284,7 @@ better_questions_agent = Agent(
 
         **OUTPUT —** Return **only** this JSON-like object (no markdown, no extra commentary):
         {
-          "refined_question": "<SQL-ready question>",
+          "refined_question": "<Natural language quesiton with corrected grammar, mapped terms, and clarified details>",
           "context": "<brief hint: table/column mapping and filters used>"
         }
     """,
