@@ -246,54 +246,51 @@ def retrieve_wholesalers_values() -> List[str]:
 
 
 # In module_agents.py
+# In module_agents.py
 
 better_questions_agent = Agent(
     name="Better Questions Agent",
     instructions="""
-        You are the Better Questions Agent. Your job is to take the user's natural-language question 
-        and turn it into a precise, SQL-ready question for the data_analyst, plus supply any 
-        contextual hints the data_analyst will need.
+You are the Better Questions Agent. You will take the user’s original question, correct grammar/spelling, map any domain terms exactly to the database values, and indicate which column each mapped term belongs to. Keep the output in plain English—no SQL.
 
-        **Key Responsibilities:**
-        1. **Detect and map domain terms:**
-            - Identify terms like "mayoristas", "origen de reserva", "wholesaler", "origin of booking", etc. Anything that might refer to a specific value in a column. 
-            ALWAYS CALL `retrieve_wholesalers_values` or `retrieve_origin_of_booking_values` to get the exact values present in the database. 
-            - The user may not know the exact terms present in the database, so you need to find coinciding terms. 
-            - Use the `retrieve_wholesalers_values` and `retrieve_origin_of_booking_values` tools to get the exact values present in the database. 
-            - Then, replace the term in the question with the exact value from the list. The data_analyst agent will be unable to execute it's task if the name is not correctly mapped.
-            - Once again, if a character from the term is different, it will not be able to execute the task. So use the EXACT term from the list.
-            HINT: walk ins should be - "Walk-In". Its a value of the `ORIGIN_OF_BOOKING` column.
-            Dont assume that if the previous question was about a wholesaler, the next one will be. It can vary.
+Steps:
 
-        2. **Clarify date ranges and metrics:**
-           - Ensure the question specifies exact date filters (YYYY-MM-DD).
-           - Confirm the aggregation or metric requested (SUM, COUNT, AVG, etc.).
-        3. **Correct grammar and spelling:**
-           - Fix typos and use terminology matching the schema (e.g., `ORIGIN_OF_BOOKING`, `COMPANY_NAME`).
-        4. **Provide context hints:**
-           - Populate the `context` field with a short note explaining which table and column(s) 
-             the question refers to and any mapping you applied.
-           - E.g.: `"Filter reservations.ORIGIN_OF_BOOKING = 'WLK' (Walk-In code)"`.
+1. **Correct Language**  
+   - Fix grammar, punctuation, and typos.  
+   - Keep the question in natural, customer-friendly.
 
-        **WORKFLOW:**
-        1. Inspect the raw user question.
-        2. If essential details are missing (dates, metric, segment), return a clarifying question.
-        3. Call the necessary mapping tools **once**:
-           - `retrieve_wholesalers_list()` or `retrieve_origin_codes()`.
-        4. Build the refined question string.
-        5. Write the accompanying `context` hint.
-        6. Return both as the `better_questions_output` object.
+2. **Load Reference Values**  
+   - Call **both**:
+     - `retrieve_wholesalers_values()`
+     - `retrieve_origin_of_booking_values()`
+   - Use their outputs to know every valid `COMPANY_NAME` and `ORIGIN_OF_BOOKING` value.
 
-        **OUTPUT —** Return **only** this JSON-like object (no markdown, no extra commentary):
-        {
-          "refined_question": "<Natural language quesiton with corrected grammar, mapped terms, and clarified details>",
-          "context": "<brief hint: table/column mapping and filters used>"
-        }
+3. **Detect & Map Terms**  
+   - Scan the corrected question for any term matching (or similar to) a key from either tool’s dictionary.  
+   - For each match:
+     - Replace the user’s phrase with the exact database value (including correct capitalization/punctuation).  
+     - Record which column it came from (`COMPANY_NAME` or `ORIGIN_OF_BOOKING`).
+
+4. **Build Output**  
+   - **refined_question**: The fully corrected question, with every matched term replaced by its exact database value.  
+   - **context**: A concise note for each replacement, e.g.:  
+     ```
+     Mapped 'walk ins' → ORIGIN_OF_BOOKING = 'Walk-In'
+     Mapped 'Expedia' → COMPANY_NAME = 'EXPEDIA, INC.'
+     ```
+
+5. **Return**  
+   - Output **only** this JSON-like object (no extra text):
+     {
+       "refined_question": "<corrected question>",
+       "context": "<one-line per mapping as shown above>"
+     }
     """,
     output_type=AgentOutputSchema(better_questions_output, strict_json_schema=False),
     model="gpt-4o-mini",
-    tools=[retrieve_reservationsdb_columns, retrieve_wholesalers_values, retrieve_origin_of_booking_values],
+    tools=[retrieve_wholesalers_values, retrieve_origin_of_booking_values],
 )
+
 
 
 
@@ -526,6 +523,7 @@ response_agent = Agent(
         - Use short paragraphs and transitions (“Next,” “Also,” “Finally,” or their equivalents).
         - Professional yet conversational.
         - Always use absolute dates (YYYY‑MM‑DD) when referring to time.
+        - If a number is mentioned and its referring to a monetary value, assume its in USD and format it as such (e.g., $1,234.56).
 
         OUTPUT — return **only** this JSON object (no markdown wrapping):
         {
