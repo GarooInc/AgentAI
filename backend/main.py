@@ -65,7 +65,6 @@ async def agent_workflow(user_question: str, convo: list[TResponseInputItem] = [
                         log(f"Better Questions Agent response: {bq}")
                         bc = bresponse.final_output.context
                         log(f"Better Questions Agent context: {bc}")
-
                         convo.append({
                             "role": "assistant",
                             "content": (
@@ -74,10 +73,11 @@ async def agent_workflow(user_question: str, convo: list[TResponseInputItem] = [
                                 f"Context: {bc}]"
                             )
                         })
-
                         response = await Runner.run(data_analyst, convo, max_turns=10)
                         final_response["data"] = response.final_output.data # revisar. 
                     except Exception as e:
+                        response = {"error": str(e)}
+
                         log(f"Error occurred while running data_analyst: {e}")
                 elif analyst == "marketing_analyst":
                     try:
@@ -89,18 +89,19 @@ async def agent_workflow(user_question: str, convo: list[TResponseInputItem] = [
                     raise ValueError(f"Unknown agent: {analyst}")
                 
                 log(f"Agent {analyst} finished. ")
-
-                rout = response.final_output
-                convo.append({
-                    "role": "assistant",
-                    "content": (
-                        f"Data Analyst response: ["
-                        f"Data: {rout.data}, "
-                        f"Findings: {rout.findings}, "
-                        f"Clarifying Question: {rout.clarifying_question}]" # esto no me convence, hay que revisarlo. 
-                    )
-                })
-                
+                try:
+                    rout = response.final_output
+                    convo.append({
+                        "role": "assistant",
+                        "content": (
+                            f"Data Analyst response: ["
+                            f"Data: {rout.data}, "
+                            f"Findings: {rout.findings}, "
+                            f"Clarifying Question: {rout.clarifying_question}]" # esto no me convence, hay que revisarlo. 
+                        )
+                    })
+                except Exception as e:
+                    log(f"Error while appending response to convo: {e}")                
 
         # 3) run graph agent if required.
             if o_out.requires_graph:
