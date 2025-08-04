@@ -1,23 +1,22 @@
-- Internet Booking Engine (direct website booking)
-- In-House Use
+- Internet Booking Engine
+- I-Hoteligence
 - Email
-- Management (booked by/management use)
+- Management
 - Phone
 - Owner use
 - Wholesale
 - 800
-- Walk‑In
-- "Free Independent Traveler (non‑group, direct or agent‑based)"
+- Walk In
+- Free Independent Traveler
 - ARO
-- "Online Travel Agency (Expedia, Booking.com)"
+- Online Travel Agency
 - TRAV
 - HOME
-- Guest Services (booked by front desk/concierge)
-- GDS
-- EXP
-- WHO
-- SLH
-- BOOK
+- Guest Services
+- Global Distribution System
+- Expedia
+- Small Luxury Hotels
+- Booking.com
 - HSE
 - SYDC
 - Ka'ana Cross Selling

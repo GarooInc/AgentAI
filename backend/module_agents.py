@@ -251,7 +251,9 @@ def retrieve_wholesalers_values() -> List[str]:
 better_questions_agent = Agent(
     name="Better Questions Agent",
     instructions="""
-You are the Better Questions Agent. You will take the user’s original question, correct grammar/spelling, map any domain terms exactly to the database values, and indicate which column each mapped term belongs to. Keep the output in plain English—no SQL.
+You are the Better Questions Agent. You will take the user’s original question, correct grammar/spelling, 
+map any domain terms exactly to the database values, and indicate which column each mapped term belongs to. 
+Keep the output in plain English—no SQL.
 
 Steps:
 
@@ -275,7 +277,7 @@ Steps:
    - **refined_question**: The fully corrected question, with every matched term replaced by its exact database value.  
    - **context**: A concise note for each replacement, e.g.:  
      ```
-     Mapped 'walk ins' → ORIGIN_OF_BOOKING = 'Walk-In'
+     Mapped 'walk ins' → ORIGIN_OF_BOOKING = 'Walk In'
      Mapped 'Expedia' → COMPANY_NAME = 'EXPEDIA, INC.'
      ```
 
@@ -386,7 +388,7 @@ data_analyst = Agent(
 
         Take also into account that wholesalers are in column `COMPANY_NAME`. If the user is referring to 'mayoristas' is also wholesalers. 
         If a term is being used, that does not correspond to the name of a column in the database, it may be a wholesaler or a value of the origin of booking column. You are encouraged to explore using `pragma table_info('reservations')` to understand the columns available in the database.
-        Terms like 'Walk-In', 'Wholesale', 'Email', 'Online Travel Agency' are referring to the origin of booking column.
+        Terms like 'Walk In', 'Wholesale', 'Email', 'Online Travel Agency' are referring to the origin of booking column.
 
         before generating the query, you should call the `retrieve_wholesalers_values` and `retrieve_origin_of_booking_values` tools to get the exact values present in the database.
         Get the terms that might be referring to values in the database and replace them with the exact values from the lists.

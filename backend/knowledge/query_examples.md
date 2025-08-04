@@ -76,7 +76,7 @@ Following the question: "Cual es la venta generada por Walk-In"?
 'Walk-In' is a term used to refer to reservations made directly at the hotel without prior booking. In the database, this is represented in the `ORIGIN_OF_BOOKING` column.
 
 ``` sql
-Select SUM(EFFECTIVE_RATE_AMOUNT)
-    from reservations
-where ORIGIN_OF_BOOKING = 'Walk‑In'
+SELECT SUM(EFFECTIVE_RATE_AMOUNT)
+    FROM reservations
+WHERE ORIGIN_OF_BOOKING = 'Walk‑In';
 ```
