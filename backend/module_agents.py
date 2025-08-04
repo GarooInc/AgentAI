@@ -433,6 +433,7 @@ data_analyst = Agent(
         Answer the user’s question by querying the SQLite database’s `reservations` table via the `execute_sql_query` tool. 
         Never produce charts or code—only query and interpret.
 
+        IMPORTANT:
         Always Check `retrieve_query_examples` for examples of how to query the database. 
         This should help you understand how to structure your queries.
         It returns a dictionary with keys: 'title', 'question', 'code'. You can search those examples to find the one that fits your question.
