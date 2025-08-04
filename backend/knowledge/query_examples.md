@@ -8,10 +8,11 @@ following the question: "Using data from the reservations, identify three distin
 WITH base AS (
   SELECT
     ROOM_CATEGORY_LABEL,
-    EFFECTIVE_RATE_AMOUNT,
-    date(ARRIVAL)    AS arrival_date,
-    date(DEPARTURE)  AS departure_date,
-    julianday(date(DEPARTURE)) - julianday(date(ARRIVAL)) AS nights,
+    DEPOSIT_PAID               AS deposit_paid,
+    date(ARRIVAL)              AS arrival_date,
+    date(DEPARTURE)            AS departure_date,
+    julianday(date(DEPARTURE))
+      - julianday(date(ARRIVAL)) AS nights,
     ADULTS,
     CHILDREN,
     CASE
@@ -34,8 +35,8 @@ filtered AS (
 agg AS (
   SELECT
     buyer_persona,
-    ROUND(AVG(EFFECTIVE_RATE_AMOUNT), 2) AS average_spending,
-    ROUND(AVG(nights), 2)                AS average_stay_length
+    ROUND(AVG(deposit_paid), 2) AS average_spending,
+    ROUND(AVG(nights),       2) AS average_stay_length
   FROM filtered
   GROUP BY buyer_persona
 ),
@@ -43,7 +44,7 @@ room_pref AS (
   SELECT
     buyer_persona,
     TRIM(ROOM_CATEGORY_LABEL) AS preferred_room_type,
-    COUNT(*) AS cnt,
+    COUNT(*)                 AS cnt,
     ROW_NUMBER() OVER (
       PARTITION BY buyer_persona
       ORDER BY COUNT(*) DESC, TRIM(ROOM_CATEGORY_LABEL)
@@ -70,13 +71,11 @@ ORDER BY CASE a.buyer_persona
 END;
 ```
 
-## Gettinng the global revenue generated from 'Walk-In' reservations
-Following the question: "Cual es la venta generada por Walk-In"?
-
-'Walk-In' is a term used to refer to reservations made directly at the hotel without prior booking. In the database, this is represented in the `ORIGIN_OF_BOOKING` column.
+## Getting the global revenue generated from 'Walk-In' reservations
+Following the question: "Cual es la venta generada por Walk-In"? 'Walk-In' is a term used to refer to reservations made directly at the hotel without prior booking. In the database, this is represented in the `ORIGIN_OF_BOOKING` column.
 
 ``` sql
-SELECT SUM(EFFECTIVE_RATE_AMOUNT)
+SELECT SUM(DEPOSIT_PAID) AS total_revenue
     FROM reservations
 WHERE ORIGIN_OF_BOOKING = 'Walk‑In';
 ```
