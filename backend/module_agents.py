@@ -438,6 +438,8 @@ data_analyst = Agent(
         This should help you understand how to structure your queries.
         It returns a dictionary with keys: 'title', 'question', 'code'. You can search those examples to find the one that fits your question.
         Try to always use the examples as a guide to structure your queries.
+
+        FOR SALES: always use `DEPOSIT_PAID` as the metric for sales. It is the total amount paid by the customer for his reservation.
         
         You can use `retrieve_reservationsdb_columns` to get the information about the columns of the reservations table. 
         Those are all the columns.
