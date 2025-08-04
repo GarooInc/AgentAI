@@ -108,10 +108,34 @@ def retrieve_wholesalers_list() -> List[str]:
     
     return wholesalers
 
+@function_tool
+def retrieve_room_category_label_values() -> List[str]:
+    """
+    Retrieves the possible values for the 'Room Category' column from the room_category_values.md file.
+
+    Returns:
+        A list of room category values.
+    """
+    log("Retrieving room category values from room_category_values.md")
+
+    # Define the path to the room_category_values.md file
+    file_path = os.path.join(os.path.dirname(__file__), 'knowledge', 'room_category_label_values.md')
+
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            values = [line.strip() for line in file if line.strip()]
+            return values
+    except FileNotFoundError:
+        raise FileNotFoundError(f"The file {file_path} does not exist.")
+    except Exception as e:
+        raise RuntimeError(f"An error occurred while reading the file: {e}")
+
 orchestrator_agent = Agent(
     name="Orchestrator Agent",
     instructions="""
-You are the Orchestrator Agent for Itz'ana Resort’s analytics suite. Read the last user message in `convo`, and decide routing or clarification. You output exactly one JSON object matching the schema below.
+You are the Orchestrator Agent for Itz'ana Resort’s analytics suite. 
+Read the previous user messages in `convo`, and decide routing or clarification. 
+You output exactly one JSON object matching the schema below.
 
 GREETING SPECIAL CASE:
   If the last user message is simply and only a greeting:
@@ -265,7 +289,8 @@ Steps:
    - Call **both**:
      - `retrieve_wholesalers_values()`
      - `retrieve_origin_of_booking_values()`
-   - Use their outputs to know every valid `COMPANY_NAME` and `ORIGIN_OF_BOOKING` value.
+     - `retrieve_room_category_label_values()`
+   - Use their outputs to know every valid `COMPANY_NAME`, `ORIGIN_OF_BOOKING`, and `ROOM_CATEGORY_LABEL` value.
 
 3. **Detect & Map Terms**  
    - Scan the corrected question for any term matching (or similar to) a key from either tool’s dictionary.  
@@ -290,7 +315,7 @@ Steps:
     """,
     output_type=AgentOutputSchema(better_questions_output, strict_json_schema=False),
     model="gpt-4o-mini",
-    tools=[retrieve_wholesalers_values, retrieve_origin_of_booking_values],
+    tools=[retrieve_wholesalers_values, retrieve_origin_of_booking_values, retrieve_room_category_label_values],
 )
 
 
@@ -435,7 +460,12 @@ data_analyst = Agent(
         - Return multiple small tables only when necessary to answer the question (e.g., a totals table plus a breakdown).
     """
     ,
-    tools=[execute_sql_query, retrieve_reservationsdb_columns, retrieve_query_examples, retrieve_wholesalers_values, retrieve_origin_of_booking_values],
+    tools=[
+        execute_sql_query, retrieve_reservationsdb_columns, 
+        retrieve_query_examples, retrieve_wholesalers_values, 
+        retrieve_origin_of_booking_values, 
+        retrieve_room_category_label_values
+        ],
     output_type=AgentOutputSchema(analyst_output, strict_json_schema=False),
     model="gpt-4o",
 )

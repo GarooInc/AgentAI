@@ -1,0 +1,12 @@
+- Beach Front Suite
+- Deluxe
+- 1 Bedroom Oceanfront Villa
+- 2 Bedroom Penthouse
+- 3 Bedroom Oceanfront Villa
+- 1 Bedroom Marina Villa
+- 4 Bedroom Marina Villa
+- 2 Bedroom Oceanfront Villa
+- 3 Bedroom Penthouse
+- 2 Bedroom Marina Villa
+- 5 Bedroom Marina Villa
+- 3 Bedroom Marina Villa
