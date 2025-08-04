@@ -337,22 +337,47 @@ class analyst_output(BaseModel):
 # -----------------------------------------------------------------------------------------------------------------------------------------
 
 @function_tool
-def retrieve_query_examples() -> List[str]:
+def retrieve_query_examples() -> List[Dict[str, str]]:
     """
-    Retrieves query examples from the query_examples.md file.
+    Retrieves query examples from the query_examples.md file, structured as title, question, and code.
 
     Returns:
-        A list of query examples.
+        A list of dictionaries with keys: 'title', 'question', 'code'.
     """
-
     log("Retrieving query examples from query_examples.md")
-
-    # Define the path to the query_examples.md file
     file_path = os.path.join(os.path.dirname(__file__), 'knowledge', 'query_examples.md')
-
+    examples = []
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
-            examples = [line.strip() for line in file if line.strip()]
+            lines = file.readlines()
+        i = 0
+        while i < len(lines):
+            line = lines[i].strip()
+            if line.startswith("## "):
+                title = line[3:].strip()
+                # Next line is the question
+                i += 1
+                question = ""
+                while i < len(lines) and not lines[i].strip().startswith("```"):
+                    question += lines[i].strip() + " "
+                    i += 1
+                question = question.strip()
+                # Next block is the code
+                code = ""
+                if i < len(lines) and lines[i].strip().startswith("```"):
+                    i += 1
+                    while i < len(lines) and not lines[i].strip().startswith("```"):
+                        code += lines[i]
+                        i += 1
+                # Skip closing ```
+                i += 1
+                examples.append({
+                    "title": title,
+                    "question": question,
+                    "code": code.strip()
+                })
+            else:
+                i += 1
     except FileNotFoundError:
         raise FileNotFoundError(f"The file {file_path} does not exist.")
     except Exception as e:
@@ -414,6 +439,8 @@ data_analyst = Agent(
 
         Always Check `retrieve_query_examples` for examples of how to query the database. 
         This should help you understand how to structure your queries.
+        It returns a dictionary with keys: 'title', 'question', 'code'. You can search those examples to find the one that fits your question.
+        Try to always use the examples as a guide to structure your queries.
 
         Take also into account that wholesalers are in column `COMPANY_NAME`. If the user is referring to 'mayoristas' is also wholesalers. 
         If a term is being used, that does not correspond to the name of a column in the database, it may be a wholesaler or a value of the origin of booking column. You are encouraged to explore using `pragma table_info('reservations')` to understand the columns available in the database.
