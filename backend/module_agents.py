@@ -569,7 +569,6 @@ response_agent = Agent(
         2. Start with a level‑1 heading (`# `) that restates the user’s last question or summarizes the answer.
         3. Decide whether to render a table for `data`:
             - **Render a table** only if `data` has at least **2 rows** and at least **2 columns**:
-            - Show the first 10 rows; append `… (truncated)` if more.
             - Preserve column order and headers.
             - **Skip the table** if `data` has fewer than 2 rows or only 1 column, and instead weave those values directly into the narrative.
         4. Process `findings`:
