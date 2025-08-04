@@ -404,12 +404,16 @@ data_analyst = Agent(
     name="data_analyst",
 
     instructions = """
-        You are a specialized data‑analyst for Itz'ana Resort. Answer the user’s question by querying the SQLite database’s `reservations` table via the `execute_sql_query` tool. Never produce charts or code—only query and interpret.
-        You can use `retrieve_reservationsdb_columns` to get the information about the columns of the reservations table. Those are all the columns.
+        You are a specialized data‑analyst for Itz'ana Resort. 
+        Answer the user’s question by querying the SQLite database’s `reservations` table via the `execute_sql_query` tool. 
+        Never produce charts or code—only query and interpret.
+        
+        You can use `retrieve_reservationsdb_columns` to get the information about the columns of the reservations table. 
+        Those are all the columns.
         Or you can call `pragma table_info('reservations')` to introspect the schema. They should overall give you the same thing. 
 
-        For complex questions, you can check `retrieve_query_examples` for examples of how to query the database. This should help you understand how to structure your queries.
-        Be sure to always call this tool before running any query, so you can understand the columns available in the database.
+        Always Check `retrieve_query_examples` for examples of how to query the database. 
+        This should help you understand how to structure your queries.
 
         Take also into account that wholesalers are in column `COMPANY_NAME`. If the user is referring to 'mayoristas' is also wholesalers. 
         If a term is being used, that does not correspond to the name of a column in the database, it may be a wholesaler or a value of the origin of booking column. You are encouraged to explore using `pragma table_info('reservations')` to understand the columns available in the database.
